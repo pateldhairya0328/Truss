@@ -25,6 +25,8 @@ public class Beam extends Polygon{
         App.group.getChildren().removeAll(A, B, App.vbox);
         this.A = A;
         this.B = B;
+        A.attachedBeams.add(this);
+        B.attachedBeams.add(this);
         this.toBack();
     }
 

@@ -63,12 +63,11 @@ public class App extends Application
     
     static DecimalFormat df = new DecimalFormat("#");
     
-    static final int NODENAME = 0, NODEX = 1, NODEY = 2, SUPPORTNAME = 3, SUPPORTX = 4, SUPPORTY = 5, 
-                     BEAMNODEA = 6, BEAMNODEB = 7, FORCENODE = 8, FORCEVAL = 9, FORCEDIR = 10;
-    static TextField[] textfields = new TextField[11];
+    static final int NODENAME = 0, NODEX = 1, NODEY = 2, BEAMNODEA = 3, BEAMNODEB = 4, FORCENODE = 5, FORCEVAL = 6, FORCEDIR = 7;
+    static TextField[] textfields = new TextField[8];
 
-    static final int ADDNODE = 0, ADDSUPP = 1, ADDBEAM = 2, ADDFORCE = 3, OPTIONS = 4, CALC = 5;
-    static Button[] buttons = new Button[6];
+    static final int ADDNODE = 0, ADDBEAM = 1, ADDFORCE = 2, OPTIONS = 3, CALC = 4;
+    static Button[] buttons = new Button[5];
 
     static final int ROLLER = 0, PIN = 1, FIXED = 2, NOTSUPP = 3;
     static RadioButton[] rdButtons = new RadioButton[3];
@@ -81,6 +80,7 @@ public class App extends Application
     static Map<String, Joint> nodeMap = new HashMap<String, Joint>(0);
     static ArrayList<Beam> beams = new ArrayList<Beam>(0);
     
+    //TODO: Help section in side bar
     public static void main(String[] args) {
         launch();
     }
@@ -487,11 +487,6 @@ public class App extends Application
         
         sidebarMakeNode();
 
-        Separator separator2 = new Separator(Orientation.HORIZONTAL);
-        vbox.getChildren().add(separator2);
-
-        sidebarMakeSupport();
-
         Separator separator = new Separator(Orientation.HORIZONTAL);
         vbox.getChildren().add(separator);
 
@@ -507,7 +502,7 @@ public class App extends Application
 
         Button options = new Button("More Options");
         Button calc = new Button("Calculate!");
-
+        
         buttons[OPTIONS] = options;
         buttons[CALC] = calc;
         
@@ -583,65 +578,6 @@ public class App extends Application
 
         vbox.getChildren().add(coordinates);
 
-        Button addNode = new Button("Add Node");
-        buttons[ADDNODE] = addNode;
-        BorderPane addNodeButton = new BorderPane(addNode);
-        vbox.getChildren().add(addNodeButton);
-    }
-
-    void sidebarMakeSupport(){
-        Text newSupport = new Text();
-        newSupport.setText("New Support");
-        newSupport.setFont(new Font("DejaVu Sans Mono", 20));
-        newSupport.setStroke(Color.grayRgb(60));
-        newSupport.setFill(Color.grayRgb(60));
-        vbox.getChildren().add(newSupport);
-        
-        Text nodeName = new Text();
-        nodeName.setText("Enter Support Name: ");
-        nodeName.setFont(new Font("DejaVu Sans Mono", 16));
-        nodeName.setStroke(Color.grayRgb(60));
-        nodeName.setFill(Color.grayRgb(60));
-        vbox.getChildren().add(nodeName);
-
-        TextField nodeNameField = new TextField();
-        vbox.getChildren().add(nodeNameField);
-        textfields[SUPPORTNAME] = nodeNameField;
-        
-        HBox coordinates = new HBox();
-        Text xy = new Text();
-        xy.setText("(x, y) = ( ");
-        xy.setFont(new Font("DejaVu Sans Mono", 14));
-        xy.setStroke(Color.grayRgb(60));
-        xy.setFill(Color.grayRgb(60));
-        coordinates.getChildren().add(xy);
-
-        TextField xPos = new TextField();
-        xPos.setMaxWidth(0.05*pWidth);
-        coordinates.getChildren().add(xPos);
-        textfields[SUPPORTX] = xPos;
-        
-        Text m = new Text();
-        m.setText(" m, ");
-        m.setFont(new Font("DejaVu Sans Mono", 14));
-        m.setStroke(Color.grayRgb(60));
-        m.setFill(Color.grayRgb(60));
-        coordinates.getChildren().add(m);
-
-        TextField yPos = new TextField();
-        yPos.setMaxWidth(0.05*pWidth);
-        coordinates.getChildren().add(yPos);
-        textfields[SUPPORTY] = yPos;
-
-        Text end = new Text();
-        end.setText(" m)");
-        end.setFont(new Font("DejaVu Sans Mono", 14));
-        end.setStroke(Color.grayRgb(60));
-        end.setFill(Color.grayRgb(60));
-        coordinates.getChildren().add(end);
-
-        vbox.getChildren().add(coordinates);
-
         HBox selectSupport = new HBox();
 
         Text selectType = new Text();
@@ -676,20 +612,21 @@ public class App extends Application
 
         selectSupport.getChildren().add(rollerSupport);
         selectSupport.getChildren().add(pinnedSupport);
-        selectSupport.getChildren().add(fixedSupport);
+        //Maybe will add fixed support stuff later
+        // selectSupport.getChildren().add(fixedSupport);
 
         Insets insets = new Insets(0, 0, 0, 10);
         HBox.setMargin(rollerSupport, insets);
         HBox.setMargin(pinnedSupport, insets);
-        HBox.setMargin(fixedSupport, insets);
+        //HBox.setMargin(fixedSupport, insets);
 
         rdButtons[ROLLER] = rollerSupport;
         rdButtons[PIN] = pinnedSupport;
         rdButtons[FIXED] = fixedSupport;
-                
-        Button addNode = new Button("Add Support");
+
+        Button addNode = new Button("Add Node");
+        buttons[ADDNODE] = addNode;
         BorderPane addNodeButton = new BorderPane(addNode);
-        buttons[ADDSUPP] = addNode;
         vbox.getChildren().add(addNodeButton);
     }
 
@@ -807,7 +744,6 @@ public class App extends Application
         buttons[ADDNODE].setOnAction(InputHandling.addNodeEventHandler);
         buttons[ADDBEAM].setOnAction(InputHandling.addBeamEventHandler);
         buttons[ADDFORCE].setOnAction(InputHandling.addForceEventHandler);
-        buttons[ADDSUPP].setOnAction(InputHandling.addSupportEventHandler);
 
         textfields[NODENAME].setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent ae){
@@ -820,17 +756,6 @@ public class App extends Application
             }
         });
         textfields[NODEY].setOnAction(InputHandling.addNodeEventHandler);
-        textfields[SUPPORTNAME].setOnAction(new EventHandler<ActionEvent>(){
-            public void handle(ActionEvent ae){
-                textfields[SUPPORTX].requestFocus();
-            }
-        });
-        textfields[SUPPORTX].setOnAction(new EventHandler<ActionEvent>(){
-            public void handle(ActionEvent ae){
-                textfields[SUPPORTY].requestFocus();
-            }
-        });
-        textfields[SUPPORTY].setOnAction(InputHandling.addSupportEventHandler);
         textfields[BEAMNODEA].setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent ae){
                 textfields[BEAMNODEB].requestFocus();
@@ -843,5 +768,48 @@ public class App extends Application
             }
         });
         textfields[FORCEDIR].setOnAction(InputHandling.addForceEventHandler);
+    }
+    
+    /**
+     * Verifies if the system of joints, supports and beams could be statically solvable
+     */
+    boolean verify(){
+        if (beams.size() > nodes.size()){
+            InputHandling.showError("You have more nodes than beams.");
+            return false;
+        }
+        int cfRoller = 0, cfPin = 0, cfFixed = 0;
+        for (Joint j: nodes){
+            switch(j.type){
+                case ROLLER:
+                    cfRoller++;
+                    break;
+                case PIN:
+                    cfPin++;
+                    break;
+                case FIXED:
+                    cfFixed++;
+            }
+
+            if (j.attachedBeams.size()<2){
+                InputHandling.showError("Each node/support must have at least 2 attached beams.");
+                return false;
+            }
+        }
+        if (!(cfRoller == 1 && cfPin == 1 && cfFixed == 0) && !(cfRoller == 0 && cfPin == 0 && cfFixed == 1)){
+            InputHandling.showError("There must be either JUST one roller and one pin support OR JUST one fixed support.");
+            return false;
+        }
+        return true;
+    }
+
+    void calculate(){
+        double matrix[][] = new double[nodes.size()*2][beams.size()+1];
+
+        for(int i = 0; i < nodes.size()*2; i+=2){
+            for (Beam b: nodes.get(i).attachedBeams){
+                
+            }
+        }
     }
 }

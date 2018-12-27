@@ -7,6 +7,7 @@ import javafx.scene.shape.Circle;
 
 public class Joint extends Circle{
     double uX = 0, uY = 0;
+    double angle = 0;
     ArrayList<Beam> attachedBeams = new ArrayList<Beam>(0);
     final int VAL = 0, DIR = 1;
     int type = 4;

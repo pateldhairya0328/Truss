@@ -14,6 +14,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;   
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -83,13 +84,7 @@ public class InputHandling{
             ContextMenu cm = null;
 
             if (me.getButton() == MouseButton.PRIMARY){
-                Joint hover = null;
-                for (Joint j: nodes){
-                    if (j.contains(me.getSceneX(), me.getSceneY())){
-                        hover = j;
-                        break;
-                    }
-                }
+                Joint hover = (Joint)me.getSource();
                 MenuItem type = new MenuItem("Type: "+hover.types[hover.type]);
                 MenuItem name = new MenuItem("Name: "+hover.name);
                 cm = new ContextMenu(type, name);
@@ -119,8 +114,26 @@ public class InputHandling{
                         }
                     }
                 });
-                
-                cm = new ContextMenu(delete);
+                Joint j = (Joint)me.getSource();
+                MenuItem changeAng = new MenuItem("Change Orientation");
+                if (j.type == NOTSUPP){
+                    changeAng.setDisable(true);
+                }
+                changeAng.setOnAction(new EventHandler<ActionEvent>(){
+                    public void handle(ActionEvent ae){
+                        try{
+                            TextInputDialog tid = new TextInputDialog();
+                            tid.setTitle("Enter angle of support.");
+                            tid.setHeaderText(null);
+                            tid.showAndWait();
+                            double newAng = Double.parseDouble(tid.getEditor().getText());
+                            j.angle = newAng;
+                        }catch(NumberFormatException nfe){
+                            showError("You did not enter a valid number.");
+                        }
+                    }
+                });
+                cm = new ContextMenu(delete, changeAng);
             }
             cm.show(primaryStage, me.getSceneX(), me.getSceneY());
         }
@@ -284,6 +297,16 @@ public class InputHandling{
                     return;
                 }
                 else{
+                    int type = 3;
+                    if (rdButtons[ROLLER].isSelected()){
+                        type = ROLLER;
+                    }
+                    else if (rdButtons[PIN].isSelected()){
+                        type = PIN;
+                    }
+                    else if (rdButtons[FIXED].isSelected()){
+                        type = FIXED;
+                    }
                     double x = Double.parseDouble(textfields[NODEX].getText());
                     double y = Double.parseDouble(textfields[NODEY].getText());
                     for (Joint j: nodes){
@@ -292,7 +315,7 @@ public class InputHandling{
                             return;
                         }
                     }
-                    Joint toAdd = new Joint(x, y, NOTSUPP, textfields[NODENAME].getText());
+                    Joint toAdd = new Joint(x, y, type, textfields[NODENAME].getText());
                     nodes.add(toAdd);
                     nodeMap.put(textfields[NODENAME].getText(), toAdd);
                     toAdd.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
@@ -308,57 +331,6 @@ public class InputHandling{
             textfields[NODEY].setText("");
             textfields[NODENAME].requestFocus();
             draw();
-        }
-    };
-
-    static EventHandler<ActionEvent> addSupportEventHandler = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent ae){
-            try{
-                if (textfields[SUPPORTNAME].getText().equals("") ){
-                    showError("Enter name for joint.");
-                    return;
-                }
-                else if (nodeMap.containsKey(textfields[SUPPORTNAME].getText())){
-                    showError("You cannot reuse a name.");
-                    textfields[SUPPORTNAME].setText("");
-                    textfields[SUPPORTNAME].requestFocus();
-                    return;
-                }
-                else{
-                    int type = 4;
-                    if (rdButtons[ROLLER].isSelected()){
-                        type = ROLLER;
-                    }
-                    else if (rdButtons[PIN].isSelected()){
-                        type = PIN;
-                    }
-                    else if (rdButtons[FIXED].isSelected()){
-                        type = FIXED;
-                    }
-                    if (type == 4){
-                        showError("You must select a type of support.");
-                        return;
-                    }
-                    double x = Double.parseDouble(textfields[SUPPORTX].getText());
-                    double y = Double.parseDouble(textfields[SUPPORTY].getText());
-                    for (Joint j: nodes){
-                        if (j.uX == x && j.uY == y){
-                            showError("A joint or support already exists there.");
-                            return;
-                        }
-                    }
-                    Joint toAdd = new Joint(x, y, type, textfields[SUPPORTNAME].getText());
-                    nodes.add(toAdd);
-                    nodeMap.put(textfields[SUPPORTNAME].getText(), toAdd);
-                    toAdd.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
-                }
-            }catch(NumberFormatException nfe){
-                showError("Enter valid numbers for support coordinates.");
-            }
-            textfields[SUPPORTNAME].setText("");
-            textfields[SUPPORTX].setText("");
-            textfields[SUPPORTY].setText("");
-            textfields[SUPPORTNAME].requestFocus();
         }
     };
 
@@ -381,7 +353,9 @@ public class InputHandling{
                         return;
                     }
                 }
-                beams.add(new Beam(jointA, jointB));
+                Beam toAdd = new Beam(jointA, jointB);
+                beams.add(toAdd);
+                group.getChildren().addAll(toAdd, jointA, jointB, vbox);
             }catch(NullPointerException npe){
                 showError("You entered an invalid name for one or both of the nodes.");
             }
@@ -394,9 +368,13 @@ public class InputHandling{
     static EventHandler<ActionEvent> addForceEventHandler = new EventHandler<ActionEvent>() {
         public void handle(ActionEvent ae){
             try{
+                double text = 0;
+                if ((text = Double.parseDouble(textfields[FORCEVAL].getText())) <= 0){
+                    showError("Force value must be positive.");
+                }
                 Joint j = nodeMap.get(textfields[FORCENODE].getText());
                 double angle = Double.parseDouble(textfields[FORCEDIR].getText());
-                j.forcevals.add(Double.parseDouble(textfields[FORCEVAL].getText()));
+                j.forcevals.add(text);
                 j.forcedirs.add(angle);
                 Arrow a = new Arrow(j, -angle);
                 j.arrows.add(a);

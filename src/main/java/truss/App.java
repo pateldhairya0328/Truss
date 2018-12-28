@@ -13,7 +13,9 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
@@ -79,6 +81,9 @@ public class App extends Application
     static ArrayList<Joint> nodes = new ArrayList<Joint>(0);
     static Map<String, Joint> nodeMap = new HashMap<String, Joint>(0);
     static ArrayList<Beam> beams = new ArrayList<Beam>(0);
+
+    static int indexOfPin = -1;
+    static int indexOfRoller = -1;
     
     //TODO: Help section in side bar
     public static void main(String[] args) {
@@ -744,7 +749,7 @@ public class App extends Application
         buttons[ADDNODE].setOnAction(InputHandling.addNodeEventHandler);
         buttons[ADDBEAM].setOnAction(InputHandling.addBeamEventHandler);
         buttons[ADDFORCE].setOnAction(InputHandling.addForceEventHandler);
-
+        buttons[CALC].setOnAction(InputHandling.calculate);
         textfields[NODENAME].setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent ae){
                 textfields[NODEX].requestFocus();
@@ -773,8 +778,8 @@ public class App extends Application
     /**
      * Verifies if the system of joints, supports and beams could be statically solvable
      */
-    boolean verify(){
-        if (beams.size() > nodes.size()){
+    static boolean verify(){
+        if (beams.size() < nodes.size()){
             InputHandling.showError("You have more nodes than beams.");
             return false;
         }
@@ -783,8 +788,10 @@ public class App extends Application
             switch(j.type){
                 case ROLLER:
                     cfRoller++;
+                    indexOfRoller = nodes.indexOf(j);
                     break;
                 case PIN:
+                    indexOfPin = nodes.indexOf(j);
                     cfPin++;
                     break;
                 case FIXED:
@@ -803,13 +810,137 @@ public class App extends Application
         return true;
     }
 
-    void calculate(){
-        double matrix[][] = new double[nodes.size()*2][beams.size()+1];
+    static void calculate(){
+        double matrix[][] = new double[nodes.size()*2][beams.size()+3+1];
+        double fx = 0;
+        double fy = 0;
+        Joint pin = nodes.get(indexOfPin);
+        Joint rol = nodes.get(indexOfRoller);
 
-        for(int i = 0; i < nodes.size()*2; i+=2){
-            for (Beam b: nodes.get(i).attachedBeams){
-                
+        int matWid = matrix[0].length;
+        Joint curJoint;
+        for (int i = 0; i < matrix.length; i+=2){
+            curJoint = nodes.get(i/2);
+            if (curJoint == pin){
+                matrix[i][matWid-3] = Math.sin(Math.toRadians(curJoint.angle));
+                matrix[i+1][matWid-3] = Math.cos(Math.toRadians(curJoint.angle));
+                matrix[i][matWid-4] = Math.cos(Math.toRadians(curJoint.angle));
+                matrix[i+1][matWid-4] = Math.sin(Math.toRadians(curJoint.angle));
+            }
+            else if (curJoint == rol){
+                matrix[i][matWid-2] = Math.sin(Math.toRadians(curJoint.angle));
+                matrix[i+1][matWid-2] = Math.cos(Math.toRadians(curJoint.angle));
+            }
+            fx = 0;
+            fy = 0;
+            for (int j = 0; j < curJoint.forcevals.size(); j++){
+                double F = curJoint.forcevals.get(j);
+                fx += F*Math.cos(Math.toRadians(curJoint.forcedirs.get(j)));
+                fy += F*Math.sin(Math.toRadians(curJoint.forcedirs.get(j)));
+            }
+            matrix[i][matWid-1] = fy;
+            matrix[i+1][matWid-1] = fx;
+            
+            for (Beam b: curJoint.attachedBeams){
+                Joint a = b.A == curJoint ? b.B : b.A;
+                double theta = Math.atan2(a.uY-curJoint.uY, a.uX-curJoint.uX);
+                matrix[i][beams.indexOf(b)] = Math.sin(theta);
+                matrix[i+1][beams.indexOf(b)] = Math.cos(theta);
             }
         }
+
+        matrix = gaussianElimination(matrix);
+        String toShow = "Beams:\n";
+        DecimalFormat dff = new DecimalFormat("#.####");
+        for (int i = 0; i < beams.size(); i++){
+            toShow += beams.get(i).name+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
+        }
+        toShow += "Supports:\n";
+        toShow += "Pinned Support:\nParallel: " + dff.format(matrix[matrix.length-4][matrix[0].length-1])+" kN\n";
+        toShow += "Perpendicular: " + dff.format(matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
+        toShow += "Roller Support:\nParallel: " + dff.format(matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, toShow, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.showAndWait();
+    }
+
+    static double[][] gaussianElimination(double [][] matrix){
+        int c = 0;
+        boolean check = false;
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        //forward step
+        for (int i = 0; i < rows; i++){
+            check = false;
+            while(check == false){
+                if (c >= cols){
+                    break;
+                }
+                if (matrix[i][c] == 0){
+                    for (int j = i+1; j < rows; j++){
+                        if (matrix[j][c] != 0){
+                            for (int k = 0; k < cols; k++){
+                                double temp = matrix[i][k];
+                                matrix[i][k] = matrix[j][k];
+                                matrix[j][k] = temp;
+                                check = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+                else{
+                    check = true;
+                }
+                if (check == false){
+                    c++;
+                }
+            }
+            if (c >= cols){
+                break;
+            }
+
+            for (int j = i+1; j < rows; j++){
+                if (i != j){
+                    double div = -matrix[j][c]/matrix[i][c];
+                    for (int k = 0; k < cols; k++){
+                        matrix[j][k] += matrix[i][k]*div;
+                    }
+                }
+            }
+            c++;
+        }
+
+        //backward step
+        c = 0;
+        for (int i = 0; i < rows; i++){
+            while (matrix[i][c] == 0){
+                if (c >= cols){
+                    break;
+                }
+                c++;
+            }
+            if (c >= cols){
+                break;
+            }
+
+            double div = matrix[i][c];
+            for (int k = 0; k < cols; k++){
+                matrix[i][k] /= div;
+            }
+
+            for (int j = 0; j < rows; j++){
+                if (i != j){
+                    div = -matrix[j][c]/matrix[i][c];
+                    for (int k = 0; k < cols; k++){
+                        matrix[j][k] += div*matrix[i][k];
+                    }
+                }
+            }
+        }
+
+        return matrix;
     }
 }

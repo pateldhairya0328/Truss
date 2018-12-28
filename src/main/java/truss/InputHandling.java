@@ -105,6 +105,8 @@ public class InputHandling{
                                 group.getChildren().remove(a);
                             }
                             for (Beam b: toDel.attachedBeams){
+                                Joint a = b.A == toDel ? b.B : b.A;
+                                a.attachedBeams.remove(b);
                                 beams.remove(b);
                                 group.getChildren().remove(b);
                             }
@@ -225,9 +227,7 @@ public class InputHandling{
                     }
                 }
                 Beam toAdd = new Beam(jointA, jointB);
-                beams.add(toAdd);
                 group.getChildren().addAll(toAdd, jointA, jointB, vbox);
-                
             }catch(NullPointerException npe){
             }
         }
@@ -300,12 +300,15 @@ public class InputHandling{
                     int type = 3;
                     if (rdButtons[ROLLER].isSelected()){
                         type = ROLLER;
+                        rdButtons[ROLLER].setSelected(false);
                     }
                     else if (rdButtons[PIN].isSelected()){
                         type = PIN;
+                        rdButtons[PIN].setSelected(false);
                     }
                     else if (rdButtons[FIXED].isSelected()){
                         type = FIXED;
+                        rdButtons[FIXED].setSelected(false);
                     }
                     double x = Double.parseDouble(textfields[NODEX].getText());
                     double y = Double.parseDouble(textfields[NODEY].getText());
@@ -354,7 +357,6 @@ public class InputHandling{
                     }
                 }
                 Beam toAdd = new Beam(jointA, jointB);
-                beams.add(toAdd);
                 group.getChildren().addAll(toAdd, jointA, jointB, vbox);
             }catch(NullPointerException npe){
                 showError("You entered an invalid name for one or both of the nodes.");
@@ -391,7 +393,19 @@ public class InputHandling{
         }
     };
     
+    static EventHandler<ActionEvent> calculate = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent ae){
+            if (verify()){
+                calculate();
+            }
+            else{
+                System.out.println("error");
+            }
+        }
+    };
+
     static void showError(String message) {
+        message = "<html><h2>"+message+"</h2></html>";
         Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
         alert.setHeaderText(null);
         alert.showAndWait();

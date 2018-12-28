@@ -27,6 +27,7 @@ public class Beam extends Polygon{
         this.B = B;
         A.attachedBeams.add(this);
         B.attachedBeams.add(this);
+        App.beams.add(this);
         this.toBack();
     }
 

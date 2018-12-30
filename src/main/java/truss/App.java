@@ -779,10 +779,6 @@ public class App extends Application
      * Verifies if the system of joints, supports and beams could be statically solvable
      */
     static boolean verify(){
-        if (beams.size() < nodes.size()){
-            InputHandling.showError("You have more nodes than beams.");
-            return false;
-        }
         int cfRoller = 0, cfPin = 0, cfFixed = 0;
         for (Joint j: nodes){
             switch(j.type){
@@ -803,10 +799,17 @@ public class App extends Application
                 return false;
             }
         }
+
         if (!(cfRoller == 1 && cfPin == 1 && cfFixed == 0) && !(cfRoller == 0 && cfPin == 0 && cfFixed == 1)){
             InputHandling.showError("There must be either JUST one roller and one pin support OR JUST one fixed support.");
             return false;
         }
+        
+        if (beams.size()+3 < nodes.size()*2){
+            InputHandling.showError("Not enough nodes to statically solve the truss.");
+            return false;
+        }
+        
         return true;
     }
 
@@ -819,24 +822,48 @@ public class App extends Application
 
         int matWid = matrix[0].length;
         Joint curJoint;
+        double temp;
+
+        //Certain values are rounded off to 0 (values between 5e-7 and -5e-7)
+        //because those values are almost there due to floating point errors
+        //in doing sines and cosines, which then cause massive errors in the 
+        //values for the forces in the beams because of gaussian elimination
         for (int i = 0; i < matrix.length; i+=2){
             curJoint = nodes.get(i/2);
             if (curJoint == pin){
-                matrix[i][matWid-3] = Math.sin(Math.toRadians(curJoint.angle));
-                matrix[i+1][matWid-3] = Math.cos(Math.toRadians(curJoint.angle));
-                matrix[i][matWid-4] = Math.cos(Math.toRadians(curJoint.angle));
-                matrix[i+1][matWid-4] = Math.sin(Math.toRadians(curJoint.angle));
+                temp =  Math.sin(Math.toRadians(curJoint.angle));
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i][matWid-3] = temp;
+                    matrix[i+1][matWid-4] = temp;
+                }
+                temp = Math.cos(Math.toRadians(curJoint.angle));
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i+1][matWid-3] = temp;
+                    matrix[i][matWid-4] = temp;
+                }
             }
             else if (curJoint == rol){
-                matrix[i][matWid-2] = Math.sin(Math.toRadians(curJoint.angle));
-                matrix[i+1][matWid-2] = Math.cos(Math.toRadians(curJoint.angle));
+                temp = Math.sin(Math.toRadians(curJoint.angle));
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i][matWid-2] = temp;
+                }
+                temp = Math.cos(Math.toRadians(curJoint.angle));
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i+1][matWid-2] = temp;
+                }
             }
             fx = 0;
             fy = 0;
             for (int j = 0; j < curJoint.forcevals.size(); j++){
                 double F = curJoint.forcevals.get(j);
-                fx += F*Math.cos(Math.toRadians(curJoint.forcedirs.get(j)));
-                fy += F*Math.sin(Math.toRadians(curJoint.forcedirs.get(j)));
+                temp = F*Math.cos(Math.toRadians(curJoint.forcedirs.get(j)));
+                if (temp < -5e-7 || temp > 5e-7){
+                    fx += temp;
+                }
+                temp = F*Math.sin(Math.toRadians(curJoint.forcedirs.get(j)));
+                if (temp < -5e-7 || temp > 5e-7){
+                    fy += temp;
+                }
             }
             matrix[i][matWid-1] = fy;
             matrix[i+1][matWid-1] = fx;
@@ -844,21 +871,28 @@ public class App extends Application
             for (Beam b: curJoint.attachedBeams){
                 Joint a = b.A == curJoint ? b.B : b.A;
                 double theta = Math.atan2(a.uY-curJoint.uY, a.uX-curJoint.uX);
-                matrix[i][beams.indexOf(b)] = Math.sin(theta);
-                matrix[i+1][beams.indexOf(b)] = Math.cos(theta);
+                temp = Math.sin(theta);
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i][beams.indexOf(b)] = temp;
+                }
+                temp = Math.cos(theta);
+                if (temp < -5e-7 || temp > 5e-7){
+                    matrix[i+1][beams.indexOf(b)] = temp;
+                }
             }
         }
 
         matrix = gaussianElimination(matrix);
+
         String toShow = "Beams:\n";
         DecimalFormat dff = new DecimalFormat("#.####");
         for (int i = 0; i < beams.size(); i++){
             toShow += beams.get(i).name+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
         }
         toShow += "Supports:\n";
-        toShow += "Pinned Support:\nParallel: " + dff.format(matrix[matrix.length-4][matrix[0].length-1])+" kN\n";
-        toShow += "Perpendicular: " + dff.format(matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
-        toShow += "Roller Support:\nParallel: " + dff.format(matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
+        toShow += "Pinned Support:\nParallel: " + dff.format(-matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
+        toShow += "Perpendicular: " + dff.format(-matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
+        toShow += "Roller Support:\nParallel: " + dff.format(-matrix[matrix.length-1][matrix[0].length-1])+" kN\n";
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION, toShow, ButtonType.OK);
         alert.setHeaderText(null);

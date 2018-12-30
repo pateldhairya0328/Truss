@@ -169,8 +169,8 @@ public class InputHandling{
             for (Joint j: nodes){
                 j.setCenterX(j.getCenterX()+me.getSceneX()-mouseX);
                 j.setCenterY(j.getCenterY()+me.getSceneY()-mouseY);
-                j.displayName.setX(j.getCenterX()-j.displayName.getLayoutBounds().getWidth()/2);
-                j.displayName.setY(j.getCenterY()+j.getRadius()/2);
+                j.displayName.setX(j.getCenterX()-0.5*j.displayName.getLayoutBounds().getWidth());
+                j.displayName.setY(j.getCenterY()+0.62525*j.getRadius());
                 for (Arrow a: j.arrows){
                     a.recalc();
                 }
@@ -186,11 +186,17 @@ public class InputHandling{
     static EventHandler<MouseEvent> jointDragged = new EventHandler<MouseEvent>() {
         public void handle (MouseEvent me){
             if (pressedOnJoint == false){
-                start = (Joint)me.getSource();
+                pressedOnJoint = true;
+                if (me.getSource().getClass() == Text.class){
+                    Text t = (Text)me.getSource();
+                    start = nodeMap.get(t.getText());
+                }
+                else{
+                    start = (Joint)me.getSource();
+                }
                 line.setStartX(start.getCenterX());
                 line.setStartY(start.getCenterY());
                 group.getChildren().add(line);
-                pressedOnJoint = true;
                 line.setStroke(Color.GRAY);
                 line.setStrokeWidth(0.5*start.getRadius());
                 line.setStrokeLineCap(StrokeLineCap.ROUND);
@@ -232,7 +238,7 @@ public class InputHandling{
                     }
                 }
                 Beam toAdd = new Beam(jointA, jointB);
-                group.getChildren().addAll(toAdd, jointA, jointB, vbox);
+                group.getChildren().addAll(toAdd, jointA, jointB, jointA.displayName, jointB.displayName, vbox);
             }catch(NullPointerException npe){
             }
         }
@@ -275,8 +281,8 @@ public class InputHandling{
                 j.setCenterY(-j.uY*pHeight/uHeight+pOffsetY+pHeight/2);
                 j.setRadius(0.2*pStep/uStep);
                 j.displayName.setFont(new Font("DejaVu Sans Mono", 2*j.getRadius()));
-                j.displayName.setX(j.getCenterX()-j.displayName.getLayoutBounds().getWidth()/2);
-                j.displayName.setY(j.getCenterY()+j.getRadius()/2);
+                j.displayName.setX(j.getCenterX()-0.5*j.displayName.getLayoutBounds().getWidth());
+                j.displayName.setY(j.getCenterY()+0.625*j.getRadius());
                 if (j.getRadius()<4){
                     j.setRadius(4);
                 }
@@ -332,7 +338,9 @@ public class InputHandling{
                     toAdd.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
                     toAdd.displayName.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
                     toAdd.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
+                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
                     toAdd.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
+                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
                     
                 }
             }catch(NumberFormatException nfe){
@@ -366,7 +374,7 @@ public class InputHandling{
                     }
                 }
                 Beam toAdd = new Beam(jointA, jointB);
-                group.getChildren().addAll(toAdd, jointA, jointB, vbox);
+                group.getChildren().addAll(toAdd, jointA, jointB, jointA.displayName, jointB.displayName, vbox);
             }catch(NullPointerException npe){
                 showError("You entered an invalid name for one or both of the nodes.");
             }

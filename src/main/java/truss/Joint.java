@@ -37,7 +37,7 @@ public class Joint extends Circle{
         this.displayName.setFill(Color.WHITE);
         this.displayName.setFont(new Font("DejaVu Sans Mono", 2*this.getRadius()));
         this.displayName.setX(this.getCenterX()-this.displayName.getLayoutBounds().getWidth()/2);
-        this.displayName.setY(this.getCenterY()+this.getRadius()/2);
+        this.displayName.setY(this.getCenterY()+0.625*this.getRadius());
         App.group.getChildren().remove(App.vbox);
         App.group.getChildren().addAll(this, displayName, App.vbox);
     }

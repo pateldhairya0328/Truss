@@ -22,7 +22,7 @@ public class Beam extends Polygon{
             A.getCenterX()-dx, A.getCenterY()-dy
         });
         this.setFill(Color.GRAY);
-        App.group.getChildren().removeAll(A, B, App.vbox);
+        App.group.getChildren().removeAll(A, B, A.displayName, B.displayName, App.vbox);
         this.A = A;
         this.B = B;
         A.attachedBeams.add(this);

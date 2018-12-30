@@ -825,9 +825,14 @@ public class App extends Application
         double temp;
 
         //Certain values are rounded off to 0 (values between 5e-7 and -5e-7)
-        //because those values are almost there due to floating point errors
-        //in doing sines and cosines, which then cause massive errors in the 
+        //because those values are almost always there* due to floating point 
+        //errors in sines and cosines, which then cause massive errors in the 
         //values for the forces in the beams because of gaussian elimination
+        
+        //*they would not be floating point errors if the user wished to have
+        // an angle of 89.99997 degrees or 0.00003 degrees on their beam, but
+        // I am assuming that is not what the user wanted, and instead wanted
+        // 90 degrees or 0 degrees, respectively
         for (int i = 0; i < matrix.length; i+=2){
             curJoint = nodes.get(i/2);
             if (curJoint == pin){
@@ -858,11 +863,11 @@ public class App extends Application
                 double F = curJoint.forcevals.get(j);
                 temp = F*Math.cos(Math.toRadians(curJoint.forcedirs.get(j)));
                 if (temp < -5e-7 || temp > 5e-7){
-                    fx += temp;
+                    fx -= temp;
                 }
                 temp = F*Math.sin(Math.toRadians(curJoint.forcedirs.get(j)));
                 if (temp < -5e-7 || temp > 5e-7){
-                    fy += temp;
+                    fy -= temp;
                 }
             }
             matrix[i][matWid-1] = fy;
@@ -888,11 +893,12 @@ public class App extends Application
         DecimalFormat dff = new DecimalFormat("#.####");
         for (int i = 0; i < beams.size(); i++){
             toShow += beams.get(i).name+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
+            beams.get(i).force = dff.format(matrix[i][matrix[i].length-1])+" kN\n";
         }
         toShow += "Supports:\n";
-        toShow += "Pinned Support:\nParallel: " + dff.format(-matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
-        toShow += "Perpendicular: " + dff.format(-matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
-        toShow += "Roller Support:\nParallel: " + dff.format(-matrix[matrix.length-1][matrix[0].length-1])+" kN\n";
+        toShow += "Pinned Support:\nParallel: " + dff.format(matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
+        toShow += "Perpendicular: " + dff.format(matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
+        toShow += "Roller Support:\nParallel: " + dff.format(matrix[matrix.length-1][matrix[0].length-1])+" kN\n";
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION, toShow, ButtonType.OK);
         alert.setHeaderText(null);

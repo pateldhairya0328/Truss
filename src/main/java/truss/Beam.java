@@ -7,6 +7,7 @@ public class Beam extends Polygon{
     Joint A = null;
     Joint B = null;
     String name = "";
+    String force = " - ";
 
     public Beam(Joint A, Joint B){
         this.name = A.name+"-"+B.name;

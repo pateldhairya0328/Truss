@@ -39,6 +39,31 @@ public class InputHandling{
                     return;
                 }
             }
+            for (Beam b: beams){
+                if (b.contains(me.getSceneX(), me.getSceneY())){
+                    ContextMenu cm = null;
+                    System.out.println("hello");
+                    if (me.getButton() == MouseButton.PRIMARY){
+                        MenuItem name = new MenuItem("Name: "+b.name);
+                        MenuItem force = new MenuItem("Force: "+b.force);
+                        cm = new ContextMenu(name, force);
+                    }
+                    else if (me.getButton() == MouseButton.SECONDARY){
+                        MenuItem delBeam = new MenuItem("Delete Beam");
+                        delBeam.setOnAction(new EventHandler<ActionEvent>(){
+                            public void handle(ActionEvent ae){
+                                group.getChildren().remove(b);
+                                b.A.attachedBeams.remove(b);
+                                b.B.attachedBeams.remove(b);
+                                beams.remove(b);
+                            }
+                        });
+                        cm = new ContextMenu(delBeam);
+                    }
+                    cm.show(primaryStage, me.getSceneX(), me.getSceneY());
+                    return;
+                }
+            }
             if (toggled && me.getX() < 0.2*pWidth){
                 return;
             }
@@ -119,6 +144,15 @@ public class InputHandling{
                         group.getChildren().remove(toDel);
                     }
                 });
+                MenuItem delForces = new MenuItem("Remove Forces");
+                delForces.setOnAction(new EventHandler<ActionEvent>(){
+                    public void handle(ActionEvent ae){
+                        group.getChildren().removeAll(toDel.arrows);
+                        toDel.arrows.removeIf(p->true);
+                        toDel.forcedirs.removeIf(p->true);
+                        toDel.forcevals.removeIf(p->true);
+                    }
+                });
                 MenuItem changeAng = new MenuItem("Change Orientation");
                 if (clicked.type == NOTSUPP){
                     changeAng.setDisable(true);
@@ -138,7 +172,7 @@ public class InputHandling{
                         }
                     }
                 });
-                cm = new ContextMenu(delete, changeAng);
+                cm = new ContextMenu(delete, delForces, changeAng);
             }
             cm.show(primaryStage, me.getSceneX(), me.getSceneY());
         }
@@ -170,7 +204,7 @@ public class InputHandling{
                 j.setCenterX(j.getCenterX()+me.getSceneX()-mouseX);
                 j.setCenterY(j.getCenterY()+me.getSceneY()-mouseY);
                 j.displayName.setX(j.getCenterX()-0.5*j.displayName.getLayoutBounds().getWidth());
-                j.displayName.setY(j.getCenterY()+0.62525*j.getRadius());
+                j.displayName.setY(j.getCenterY()+0.625*j.getRadius());
                 for (Arrow a: j.arrows){
                     a.recalc();
                 }
@@ -341,7 +375,7 @@ public class InputHandling{
                     toAdd.displayName.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
                     toAdd.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
                     toAdd.displayName.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
-                    
+    
                 }
             }catch(NumberFormatException nfe){
                 showError("Enter valid numbers for joint coordinates.");

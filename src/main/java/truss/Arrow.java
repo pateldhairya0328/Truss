@@ -15,7 +15,7 @@ public class Arrow extends Group{
     public Arrow(Joint j, double dir){
         this.j = j;
         this.dir = dir;
-        arrowLength = 5*j.getRadius();
+        arrowLength = App.pStep/App.uStep;
         double x = j.getCenterX();
         double y = j.getCenterY();
         line = new Line(x, y, x+0.8*arrowLength*Math.cos(Math.toRadians(dir)), y+0.8*arrowLength*Math.sin(Math.toRadians(dir)));
@@ -35,7 +35,7 @@ public class Arrow extends Group{
     }
 
     void recalc(){
-        arrowLength = 5*j.getRadius();
+        arrowLength = App.pStep/App.uStep;
         double x = j.getCenterX();
         double y = j.getCenterY();
         line.setStartX(x);

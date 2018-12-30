@@ -3,6 +3,7 @@ package truss;
 import javafx.scene.Group;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.StrokeLineCap;
 
 public class Arrow extends Group{
     Line line;
@@ -19,6 +20,7 @@ public class Arrow extends Group{
         double y = j.getCenterY();
         line = new Line(x, y, x+0.8*arrowLength*Math.cos(Math.toRadians(dir)), y+0.8*arrowLength*Math.sin(Math.toRadians(dir)));
         line.setStrokeWidth(arrowLength/25);
+        line.setStrokeLineCap(StrokeLineCap.ROUND);
         double ex = line.getEndX();
         double ey = line.getEndY();
         double sx = line.getStartX();

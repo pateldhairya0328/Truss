@@ -21,6 +21,8 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 
@@ -82,45 +84,46 @@ public class InputHandling{
     static EventHandler<MouseEvent> jointClick = new EventHandler<MouseEvent>() {
         public void handle(MouseEvent me){
             ContextMenu cm = null;
+            Joint clicked = null;
+
+            if (me.getSource().getClass() == Text.class){
+                Text t = (Text)me.getSource();
+                clicked = nodeMap.get(t.getText());
+            }
+            else{
+                clicked = (Joint)me.getSource();
+            }
 
             if (me.getButton() == MouseButton.PRIMARY){
-                Joint hover = (Joint)me.getSource();
-                MenuItem type = new MenuItem("Type: "+hover.types[hover.type]);
-                MenuItem name = new MenuItem("Name: "+hover.name);
+                MenuItem type = new MenuItem("Type: "+clicked.types[clicked.type]);
+                MenuItem name = new MenuItem("Name: "+clicked.name);
                 cm = new ContextMenu(type, name);
             }
             else{
                 MenuItem delete = new MenuItem("Delete");
+                final Joint toDel = clicked;
                 delete.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
-                        Joint toDel = null;
-                        for (Joint j: nodes){
-                            if (j.contains(me.getSceneX(), me.getSceneY())){
-                                toDel = j;
-                                break;
-                            }
+                        for (Arrow a: toDel.arrows){
+                            group.getChildren().remove(a);
                         }
-                        if (toDel != null){
-                            for (Arrow a: toDel.arrows){
-                                group.getChildren().remove(a);
-                            }
-                            for (Beam b: toDel.attachedBeams){
-                                Joint a = b.A == toDel ? b.B : b.A;
-                                a.attachedBeams.remove(b);
-                                beams.remove(b);
-                                group.getChildren().remove(b);
-                            }
-                            nodeMap.remove(toDel.name);
-                            nodes.remove(toDel);
-                            group.getChildren().remove(toDel);
+                        for (Beam b: toDel.attachedBeams){
+                            Joint a = b.A == toDel ? b.B : b.A;
+                            a.attachedBeams.remove(b);
+                            beams.remove(b);
+                            group.getChildren().remove(b);
                         }
+                        nodeMap.remove(toDel.name);
+                        nodes.remove(toDel);
+                        group.getChildren().remove(toDel.displayName);
+                        group.getChildren().remove(toDel);
                     }
                 });
-                Joint j = (Joint)me.getSource();
                 MenuItem changeAng = new MenuItem("Change Orientation");
-                if (j.type == NOTSUPP){
+                if (clicked.type == NOTSUPP){
                     changeAng.setDisable(true);
                 }
+                final Joint toChange = clicked;
                 changeAng.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
                         try{
@@ -129,7 +132,7 @@ public class InputHandling{
                             tid.setHeaderText(null);
                             tid.showAndWait();
                             double newAng = Double.parseDouble(tid.getEditor().getText());
-                            j.angle = newAng;
+                            toChange.angle = newAng;
                         }catch(NumberFormatException nfe){
                             showError("You did not enter a valid number.");
                         }
@@ -166,6 +169,8 @@ public class InputHandling{
             for (Joint j: nodes){
                 j.setCenterX(j.getCenterX()+me.getSceneX()-mouseX);
                 j.setCenterY(j.getCenterY()+me.getSceneY()-mouseY);
+                j.displayName.setX(j.getCenterX()-j.displayName.getLayoutBounds().getWidth()/2);
+                j.displayName.setY(j.getCenterY()+j.getRadius()/2);
                 for (Arrow a: j.arrows){
                     a.recalc();
                 }
@@ -181,11 +186,11 @@ public class InputHandling{
     static EventHandler<MouseEvent> jointDragged = new EventHandler<MouseEvent>() {
         public void handle (MouseEvent me){
             if (pressedOnJoint == false){
-                line.setStartX(me.getSceneX());
-                line.setStartY(me.getSceneY());
+                start = (Joint)me.getSource();
+                line.setStartX(start.getCenterX());
+                line.setStartY(start.getCenterY());
                 group.getChildren().add(line);
                 pressedOnJoint = true;
-                start = (Joint)me.getSource();
                 line.setStroke(Color.GRAY);
                 line.setStrokeWidth(0.5*start.getRadius());
                 line.setStrokeLineCap(StrokeLineCap.ROUND);
@@ -269,6 +274,9 @@ public class InputHandling{
                 j.setCenterX(j.uX*pWidth/uWidth+pOffsetX+pWidth/2);
                 j.setCenterY(-j.uY*pHeight/uHeight+pOffsetY+pHeight/2);
                 j.setRadius(0.2*pStep/uStep);
+                j.displayName.setFont(new Font("DejaVu Sans Mono", 2*j.getRadius()));
+                j.displayName.setX(j.getCenterX()-j.displayName.getLayoutBounds().getWidth()/2);
+                j.displayName.setY(j.getCenterY()+j.getRadius()/2);
                 if (j.getRadius()<4){
                     j.setRadius(4);
                 }
@@ -322,6 +330,7 @@ public class InputHandling{
                     nodes.add(toAdd);
                     nodeMap.put(textfields[NODENAME].getText(), toAdd);
                     toAdd.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
+                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
                     toAdd.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
                     toAdd.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
                     
@@ -405,7 +414,6 @@ public class InputHandling{
     };
 
     static void showError(String message) {
-        message = "<html><h2>"+message+"</h2></html>";
         Alert alert = new Alert(Alert.AlertType.ERROR, message, ButtonType.OK);
         alert.setHeaderText(null);
         alert.showAndWait();

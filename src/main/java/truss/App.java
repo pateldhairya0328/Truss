@@ -114,7 +114,7 @@ public class App extends Application
         transition.setToX(0);
         buttonTransition.setToX(0.2*pWidth);
         
-        ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("Close.png")));
+        ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/Close.png")));
         icon.setFitWidth(24);
         icon.setFitHeight(24);
         showOptions.setGraphic(icon);
@@ -122,7 +122,7 @@ public class App extends Application
         showOptions.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
                 if (toggled){
-                    ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("Open.png")));
+                    ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/Open.png")));
                     icon.setFitWidth(24);
                     icon.setFitHeight(24);
                     ((Button)e.getSource()).setGraphic(icon);
@@ -143,7 +143,7 @@ public class App extends Application
                     draw();
                 }
                 else{
-                    ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("Close.png")));
+                    ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/Close.png")));
                     icon.setFitWidth(24);
                     icon.setFitHeight(24);
                     ((Button)e.getSource()).setGraphic(icon);
@@ -594,13 +594,13 @@ public class App extends Application
 
         selectSupport.getChildren().add(selectType);
 
-        ImageView rollerSupp = new ImageView(new Image(getClass().getResourceAsStream("RollerSupport.png")));
+        ImageView rollerSupp = new ImageView(new Image(getClass().getResourceAsStream("/RollerSupport.png")));
         rollerSupp.setFitWidth(25);
         rollerSupp.setFitHeight(25);
-        ImageView pinSupp = new ImageView(new Image(getClass().getResourceAsStream("PinnedSupport.png")));
+        ImageView pinSupp = new ImageView(new Image(getClass().getResourceAsStream("/PinnedSupport.png")));
         pinSupp.setFitWidth(25);
         pinSupp.setFitHeight(25);
-        ImageView fixedSupp = new ImageView(new Image(getClass().getResourceAsStream("FixedSupport.png")));
+        ImageView fixedSupp = new ImageView(new Image(getClass().getResourceAsStream("/FixedSupport.png")));
         fixedSupp.setFitWidth(25);
         fixedSupp.setFitHeight(25);
 

@@ -6,11 +6,11 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 
 public class Arrow extends Group{
-    Line line;
-    double arrowLength = 100;
-    Joint j;
-    double dir;
-    Polygon arrowHead;
+    private Line line;
+    private double arrowLength = 100;
+    private Joint j;
+    private double dir;
+    private Polygon arrowHead;
 
     public Arrow(Joint j, double dir){
         this.j = j;
@@ -57,19 +57,35 @@ public class Arrow extends Group{
 
     }
 
-    
-    // void recalc(){
-    //     this.getPoints().clear();
-    //     double dy = A.getCenterY()-B.getCenterY();
-    //     double dx = A.getCenterX()-B.getCenterX();
-    //     double theta = Math.PI/2+Math.atan2(dy, dx);
-    //     dy = (0.5*A.getRadius())*Math.sin(theta);
-    //     dx = (0.5*A.getRadius())*Math.cos(theta);
-    //     this.getPoints().addAll(new Double[]{
-    //         A.getCenterX()+dx, A.getCenterY()+dy,
-    //         B.getCenterX()+dx, B.getCenterY()+dy,
-    //         B.getCenterX()-dx, B.getCenterY()-dy,
-    //         A.getCenterX()-dx, A.getCenterY()-dy
-    //     });
-    // }
+    public Line getLine(){
+        return line;
+    }
+
+    public void setLine(Line line){
+        this.line = line;
+    }
+
+    public double getArrowLength(){
+        return arrowLength;
+    }
+
+    public Joint getJoint(){
+        return j;
+    }
+
+    public void setJoint(Joint j){
+        this.j = j;
+    }
+
+    public double getDir(){
+        return dir;
+    }
+
+    public void setDir(double dir){
+        this.dir = dir;
+    }
+
+    public Polygon getArrowhead(){
+        return arrowHead;
+    }
 }

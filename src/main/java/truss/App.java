@@ -781,7 +781,7 @@ public class App extends Application
     static boolean verify(){
         int cfRoller = 0, cfPin = 0, cfFixed = 0;
         for (Joint j: nodes){
-            switch(j.type){
+            switch(j.getType()){
                 case ROLLER:
                     cfRoller++;
                     indexOfRoller = nodes.indexOf(j);
@@ -794,7 +794,7 @@ public class App extends Application
                     cfFixed++;
             }
 
-            if (j.attachedBeams.size()<2){
+            if (j.getBeams().size()<2){
                 InputHandling.showError("Each node/support must have at least 2 attached beams.");
                 return false;
             }
@@ -836,36 +836,36 @@ public class App extends Application
         for (int i = 0; i < matrix.length; i+=2){
             curJoint = nodes.get(i/2);
             if (curJoint == pin){
-                temp =  Math.sin(Math.toRadians(curJoint.angle));
+                temp =  Math.sin(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-7 || temp > 5e-7){
                     matrix[i][matWid-3] = temp;
                     matrix[i+1][matWid-4] = temp;
                 }
-                temp = Math.cos(Math.toRadians(curJoint.angle));
+                temp = Math.cos(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-7 || temp > 5e-7){
                     matrix[i+1][matWid-3] = temp;
                     matrix[i][matWid-4] = temp;
                 }
             }
             else if (curJoint == rol){
-                temp = Math.sin(Math.toRadians(curJoint.angle));
+                temp = Math.sin(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-7 || temp > 5e-7){
                     matrix[i][matWid-2] = temp;
                 }
-                temp = Math.cos(Math.toRadians(curJoint.angle));
+                temp = Math.cos(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-7 || temp > 5e-7){
                     matrix[i+1][matWid-2] = temp;
                 }
             }
             fx = 0;
             fy = 0;
-            for (int j = 0; j < curJoint.forcevals.size(); j++){
-                double F = curJoint.forcevals.get(j);
-                temp = F*Math.cos(Math.toRadians(curJoint.forcedirs.get(j)));
+            for (int j = 0; j < curJoint.getForceVals().size(); j++){
+                double F = curJoint.getForceVals().get(j);
+                temp = F*Math.cos(Math.toRadians(curJoint.getForceDirs().get(j)));
                 if (temp < -5e-7 || temp > 5e-7){
                     fx -= temp;
                 }
-                temp = F*Math.sin(Math.toRadians(curJoint.forcedirs.get(j)));
+                temp = F*Math.sin(Math.toRadians(curJoint.getForceDirs().get(j)));
                 if (temp < -5e-7 || temp > 5e-7){
                     fy -= temp;
                 }
@@ -873,9 +873,9 @@ public class App extends Application
             matrix[i][matWid-1] = fy;
             matrix[i+1][matWid-1] = fx;
             
-            for (Beam b: curJoint.attachedBeams){
-                Joint a = b.A == curJoint ? b.B : b.A;
-                double theta = Math.atan2(a.uY-curJoint.uY, a.uX-curJoint.uX);
+            for (Beam b: curJoint.getBeams()){
+                Joint a = b.getJointA() == curJoint ? b.getJointB() : b.getJointA();
+                double theta = Math.atan2(a.getUY()-curJoint.getUY(), a.getUX()-curJoint.getUX());
                 temp = Math.sin(theta);
                 if (temp < -5e-7 || temp > 5e-7){
                     matrix[i][beams.indexOf(b)] = temp;
@@ -892,8 +892,8 @@ public class App extends Application
         String toShow = "Beams:\n";
         DecimalFormat dff = new DecimalFormat("#.####");
         for (int i = 0; i < beams.size(); i++){
-            toShow += beams.get(i).name+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
-            beams.get(i).force = dff.format(matrix[i][matrix[i].length-1])+" kN\n";
+            toShow += beams.get(i).getName()+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
+            beams.get(i).setForce(dff.format(matrix[i][matrix[i].length-1])+" kN\n");
         }
         toShow += "Supports:\n";
         toShow += "Pinned Support:\nParallel: " + dff.format(matrix[matrix.length-2][matrix[0].length-1])+" kN\n";

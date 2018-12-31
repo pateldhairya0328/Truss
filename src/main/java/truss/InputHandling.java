@@ -44,8 +44,8 @@ public class InputHandling{
                     ContextMenu cm = null;
                     System.out.println("hello");
                     if (me.getButton() == MouseButton.PRIMARY){
-                        MenuItem name = new MenuItem("Name: "+b.name);
-                        MenuItem force = new MenuItem("Force: "+b.force);
+                        MenuItem name = new MenuItem("Name: "+b.getName());
+                        MenuItem force = new MenuItem("Force: "+b.getForce());
                         cm = new ContextMenu(name, force);
                     }
                     else if (me.getButton() == MouseButton.SECONDARY){
@@ -53,8 +53,8 @@ public class InputHandling{
                         delBeam.setOnAction(new EventHandler<ActionEvent>(){
                             public void handle(ActionEvent ae){
                                 group.getChildren().remove(b);
-                                b.A.attachedBeams.remove(b);
-                                b.B.attachedBeams.remove(b);
+                                b.getJointA().getBeams().remove(b);
+                                b.getJointB().getBeams().remove(b);
                                 beams.remove(b);
                             }
                         });
@@ -120,8 +120,8 @@ public class InputHandling{
             }
 
             if (me.getButton() == MouseButton.PRIMARY){
-                MenuItem type = new MenuItem("Type: "+clicked.types[clicked.type]);
-                MenuItem name = new MenuItem("Name: "+clicked.name);
+                MenuItem type = new MenuItem("Type: "+clicked.getTypes()[clicked.getType()]);
+                MenuItem name = new MenuItem("Name: "+clicked.getName());
                 cm = new ContextMenu(type, name);
             }
             else{
@@ -129,32 +129,32 @@ public class InputHandling{
                 final Joint toDel = clicked;
                 delete.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
-                        for (Arrow a: toDel.arrows){
+                        for (Arrow a: toDel.getArrows()){
                             group.getChildren().remove(a);
                         }
-                        for (Beam b: toDel.attachedBeams){
-                            Joint a = b.A == toDel ? b.B : b.A;
-                            a.attachedBeams.remove(b);
+                        for (Beam b: toDel.getBeams()){
+                            Joint a = b.getJointA() == toDel ? b.getJointB() : b.getJointA();
+                            a.getBeams().remove(b);
                             beams.remove(b);
                             group.getChildren().remove(b);
                         }
-                        nodeMap.remove(toDel.name);
+                        nodeMap.remove(toDel.getName());
                         nodes.remove(toDel);
-                        group.getChildren().remove(toDel.displayName);
+                        group.getChildren().remove(toDel.getDisplayName());
                         group.getChildren().remove(toDel);
                     }
                 });
                 MenuItem delForces = new MenuItem("Remove Forces");
                 delForces.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
-                        group.getChildren().removeAll(toDel.arrows);
-                        toDel.arrows.removeIf(p->true);
-                        toDel.forcedirs.removeIf(p->true);
-                        toDel.forcevals.removeIf(p->true);
+                        group.getChildren().removeAll(toDel.getArrows());
+                        toDel.getArrows().removeIf(p->true);
+                        toDel.getForceDirs().removeIf(p->true);
+                        toDel.getForceVals().removeIf(p->true);
                     }
                 });
                 MenuItem changeAng = new MenuItem("Change Orientation");
-                if (clicked.type == NOTSUPP){
+                if (clicked.getType() == NOTSUPP){
                     changeAng.setDisable(true);
                 }
                 final Joint toChange = clicked;
@@ -166,7 +166,7 @@ public class InputHandling{
                             tid.setHeaderText(null);
                             tid.showAndWait();
                             double newAng = Double.parseDouble(tid.getEditor().getText());
-                            toChange.angle = newAng;
+                            toChange.setAngle(newAng);
                         }catch(NumberFormatException nfe){
                             showError("You did not enter a valid number.");
                         }
@@ -203,9 +203,9 @@ public class InputHandling{
             for (Joint j: nodes){
                 j.setCenterX(j.getCenterX()+me.getSceneX()-mouseX);
                 j.setCenterY(j.getCenterY()+me.getSceneY()-mouseY);
-                j.displayName.setX(j.getCenterX()-0.5*j.displayName.getLayoutBounds().getWidth());
-                j.displayName.setY(j.getCenterY()+0.625*j.getRadius());
-                for (Arrow a: j.arrows){
+                j.getDisplayName().setX(j.getCenterX()-0.5*j.getDisplayName().getLayoutBounds().getWidth());
+                j.getDisplayName().setY(j.getCenterY()+0.625*j.getRadius());
+                for (Arrow a: j.getArrows()){
                     a.recalc();
                 }
             }
@@ -264,15 +264,14 @@ public class InputHandling{
                     return;
                 }
                 for (Beam b: beams){
-                    if (b.A == jointA && b.B == jointB){
+                    if (b.getJointA() == jointA && b.getJointB() == jointB){
                         return;
                     }
-                    else if (b.B == jointA && b.A == jointB){
+                    else if (b.getJointB() == jointA && b.getJointA() == jointB){
                         return;
                     }
                 }
-                Beam toAdd = new Beam(jointA, jointB);
-                group.getChildren().addAll(toAdd, jointA, jointB, jointA.displayName, jointB.displayName, vbox);
+                new Beam(jointA, jointB);
             }catch(NullPointerException npe){
             }
         }
@@ -311,16 +310,16 @@ public class InputHandling{
             uHeight = fin-ini;
 
             for (Joint j: nodes){
-                j.setCenterX(j.uX*pWidth/uWidth+pOffsetX+pWidth/2);
-                j.setCenterY(-j.uY*pHeight/uHeight+pOffsetY+pHeight/2);
+                j.setCenterX(j.getUX()*pWidth/uWidth+pOffsetX+pWidth/2);
+                j.setCenterY(-j.getUY()*pHeight/uHeight+pOffsetY+pHeight/2);
                 j.setRadius(0.2*pStep/uStep);
-                j.displayName.setFont(new Font("DejaVu Sans Mono", 2*j.getRadius()));
-                j.displayName.setX(j.getCenterX()-0.5*j.displayName.getLayoutBounds().getWidth());
-                j.displayName.setY(j.getCenterY()+0.625*j.getRadius());
+                j.getDisplayName().setFont(new Font("DejaVu Sans Mono", 2*j.getRadius()));
+                j.getDisplayName().setX(j.getCenterX()-0.5*j.getDisplayName().getLayoutBounds().getWidth());
+                j.getDisplayName().setY(j.getCenterY()+0.625*j.getRadius());
                 if (j.getRadius()<4){
                     j.setRadius(4);
                 }
-                for (Arrow a: j.arrows){
+                for (Arrow a: j.getArrows()){
                     a.recalc();
                 }
             }
@@ -361,7 +360,7 @@ public class InputHandling{
                     double x = Double.parseDouble(textfields[NODEX].getText());
                     double y = Double.parseDouble(textfields[NODEY].getText());
                     for (Joint j: nodes){
-                        if (j.uX == x && j.uY == y){
+                        if (j.getUX() == x && j.getUY() == y){
                             showError("A joint or support already exists there.");
                             return;
                         }
@@ -370,11 +369,11 @@ public class InputHandling{
                     nodes.add(toAdd);
                     nodeMap.put(textfields[NODENAME].getText(), toAdd);
                     toAdd.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
-                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
+                    toAdd.getDisplayName().addEventFilter(MouseEvent.MOUSE_CLICKED, jointClick);
                     toAdd.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
-                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
+                    toAdd.getDisplayName().addEventFilter(MouseEvent.MOUSE_DRAGGED, jointDragged);
                     toAdd.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
-                    toAdd.displayName.addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
+                    toAdd.getDisplayName().addEventFilter(MouseEvent.MOUSE_RELEASED, jointReleased);
     
                 }
             }catch(NumberFormatException nfe){
@@ -398,17 +397,16 @@ public class InputHandling{
                     return;
                 }
                 for (Beam b: beams){
-                    if (b.A == jointA && b.B == jointB){
+                    if (b.getJointA() == jointA && b.getJointB() == jointB){
                         showError("A beam between these two nodes already exists.");
                         return;
                     }
-                    else if (b.B == jointA && b.A == jointB){
+                    else if (b.getJointB() == jointA && b.getJointA() == jointB){
                         showError("A beam between these two nodes already exists.");
                         return;
                     }
                 }
-                Beam toAdd = new Beam(jointA, jointB);
-                group.getChildren().addAll(toAdd, jointA, jointB, jointA.displayName, jointB.displayName, vbox);
+                new Beam(jointA, jointB);
             }catch(NullPointerException npe){
                 showError("You entered an invalid name for one or both of the nodes.");
             }
@@ -427,11 +425,11 @@ public class InputHandling{
                 }
                 Joint j = nodeMap.get(textfields[FORCENODE].getText());
                 double angle = Double.parseDouble(textfields[FORCEDIR].getText());
-                j.forcevals.add(text);
-                j.forcedirs.add(angle);
+                j.getForceVals().add(text);
+                j.getForceDirs().add(angle);
                 Arrow a = new Arrow(j, -angle);
-                j.arrows.add(a);
-                group.getChildren().add(j.arrows.get(j.arrows.size()-1));
+                j.getArrows().add(a);
+                group.getChildren().add(j.getArrows().get(j.getArrows().size()-1));
             }catch (NullPointerException npe){
                 showError("You entered an invalid node.");
             }catch (NumberFormatException nfe){

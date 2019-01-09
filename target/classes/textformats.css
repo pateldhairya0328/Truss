@@ -1,0 +1,31 @@
+#largeTextSideBar{
+    -fx-font-size: 20px;
+    -fx-font-family: "DejaVu Sans Mono";
+    -fx-fill: #3c3c3c;
+    -fx-stroke: #3c3c3c;
+}
+
+#smallTextSideBar{
+    -fx-font-size: 16px;
+    -fx-font-family: "DejaVu Sans Mono";
+    -fx-fill: #3c3c3c;
+    -fx-stroke: #3c3c3c;
+}
+
+#smallerTextSideBar{
+    -fx-font-size: 14px;
+    -fx-font-family: "DejaVu Sans Mono";
+    -fx-fill: #3c3c3c;
+    -fx-stroke: #3c3c3c;
+}
+
+.button{
+    -fx-text-fill: #3c3c3c;
+    -fx-font-family: "DejaVu Sans Mono";
+}
+
+
+#calculateButton{
+    -fx-base: #94f48d;
+    -fx-background: #1cb512;
+}

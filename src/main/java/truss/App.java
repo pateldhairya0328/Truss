@@ -36,7 +36,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -178,6 +177,8 @@ public class App extends Application
         //Setting up the stage
         {
             scene = new Scene(group, pWidth, pHeight);
+            scene.getStylesheets().add("/textformats.css");
+            scene.getStylesheets().add("/buttonformats.css");
             scene.addEventHandler(MouseEvent.MOUSE_CLICKED, InputHandling.screenClick);
             scene.addEventHandler(MouseDragEvent.MOUSE_DRAGGED, InputHandling.screenDragged);
             scene.addEventHandler(MouseEvent.MOUSE_MOVED, InputHandling.mouseMoved);
@@ -505,8 +506,9 @@ public class App extends Application
         Separator separator4 = new Separator(Orientation.HORIZONTAL);
         vbox.getChildren().add(separator4);
 
-        Button options = new Button("More Options");
+        Button options = new Button("Help");
         Button calc = new Button("Calculate!");
+        calc.setId("calculateButton");
         
         buttons[OPTIONS] = options;
         buttons[CALC] = calc;
@@ -524,37 +526,25 @@ public class App extends Application
     }
 
     void sidebarMakeNode(){
-        Text newNode = new Text();
-        newNode.setText("New Node");
-        newNode.setFont(new Font("DejaVu Sans Mono", 20));
-        newNode.setStroke(Color.grayRgb(60));
-        newNode.setFill(Color.grayRgb(60));
+        Text newNode = new Text("New Node");
+        newNode.setId("largeTextSideBar");
         vbox.getChildren().add(newNode);
 
-        Text nodeName = new Text();
-        nodeName.setText("Enter Node Name: ");
-        nodeName.setFont(new Font("DejaVu Sans Mono", 16));
-        nodeName.setStroke(Color.grayRgb(60));
-        nodeName.setFill(Color.grayRgb(60));
+        Text nodeName = new Text("Enter Node Name: ");
+        nodeName.setId("smallTextSideBar");
         vbox.getChildren().add(nodeName);
 
         TextField nodeNameField = new TextField();
         vbox.getChildren().add(nodeNameField);
         textfields[NODENAME] = nodeNameField;
         
-        Text coordinate = new Text();
-        coordinate.setText("Enter Coordinates: ");
-        coordinate.setFont(new Font("DejaVu Sans Mono", 16));
-        coordinate.setStroke(Color.grayRgb(60));
-        coordinate.setFill(Color.grayRgb(60));
+        Text coordinate = new Text("Enter Coordinates: ");
+        coordinate.setId("smallTextSideBar");
         vbox.getChildren().add(coordinate);
 
         HBox coordinates = new HBox();
-        Text xy = new Text();
-        xy.setText("(x, y) = ( ");
-        xy.setFont(new Font("DejaVu Sans Mono", 14));
-        xy.setStroke(Color.grayRgb(60));
-        xy.setFill(Color.grayRgb(60));
+        Text xy = new Text("(x, y) = ( ");
+        xy.setId("smallerTextSideBar");
         coordinates.getChildren().add(xy);
 
         TextField xPos = new TextField();
@@ -562,11 +552,8 @@ public class App extends Application
         coordinates.getChildren().add(xPos);
         textfields[NODEX] = xPos;
         
-        Text m = new Text();
-        m.setText(" m, ");
-        m.setFont(new Font("DejaVu Sans Mono", 14));
-        m.setStroke(Color.grayRgb(60));
-        m.setFill(Color.grayRgb(60));
+        Text m = new Text(" m, ");
+        m.setId("smallerTextSideBar");
         coordinates.getChildren().add(m);
 
         TextField yPos = new TextField();
@@ -574,22 +561,16 @@ public class App extends Application
         coordinates.getChildren().add(yPos);
         textfields[NODEY] = yPos;
 
-        Text end = new Text();
-        end.setText(" m)");
-        end.setFont(new Font("DejaVu Sans Mono", 14));
-        end.setStroke(Color.grayRgb(60));
-        end.setFill(Color.grayRgb(60));
+        Text end = new Text(" m)");
+        end.setId("smallerTextSideBar");
         coordinates.getChildren().add(end);
 
         vbox.getChildren().add(coordinates);
 
         HBox selectSupport = new HBox();
 
-        Text selectType = new Text();
-        selectType.setText("Type of Support: ");
-        selectType.setFont(new Font("DejaVu Sans Mono", 16));
-        selectType.setStroke(Color.grayRgb(60));
-        selectType.setFill(Color.grayRgb(60));
+        Text selectType = new Text("Type of Support: ");
+        selectType.setId("smallTextSideBar");
         vbox.getChildren().add(selectSupport);
 
         selectSupport.getChildren().add(selectType);
@@ -636,20 +617,14 @@ public class App extends Application
     }
 
     void sidebarMakeBeam(){
-        Text addBeam = new Text();
-        addBeam.setText("New Beam");
-        addBeam.setFont(new Font("DejaVu Sans Mono", 20));
-        addBeam.setStroke(Color.grayRgb(60));
-        addBeam.setFill(Color.grayRgb(60));
+        Text addBeam = new Text("New Beam");
+        addBeam.setId("largeTextSideBar");
         vbox.getChildren().add(addBeam);
 
         HBox firstNode = new HBox();
 
-        Text nodeOne = new Text();
-        nodeOne.setText("First Node: ");
-        nodeOne.setFont(new Font("DejaVu Sans Mono", 14));
-        nodeOne.setStroke(Color.grayRgb(60));
-        nodeOne.setFill(Color.grayRgb(60));
+        Text nodeOne = new Text("First Node: ");
+        nodeOne.setId("smallerTextSideBar");
         firstNode.getChildren().add(nodeOne);
         
         TextField nodeOneField = new TextField();
@@ -660,11 +635,8 @@ public class App extends Application
 
         HBox SecondNode = new HBox();
 
-        Text nodeTwo = new Text();
-        nodeTwo.setText("Second Node: ");
-        nodeTwo.setFont(new Font("DejaVu Sans Mono", 14));
-        nodeTwo.setStroke(Color.grayRgb(60));
-        nodeTwo.setFill(Color.grayRgb(60));
+        Text nodeTwo = new Text("Second Node: ");
+        nodeTwo.setId("smallerTextSideBar");
         SecondNode.getChildren().add(nodeTwo);
         
         TextField nodeTwoField = new TextField();
@@ -680,20 +652,14 @@ public class App extends Application
     }
 
     void sidebarMakeForce(){
-        Text addForce = new Text();
-        addForce.setText("New Force");
-        addForce.setFont(new Font("DejaVu Sans Mono", 20));
-        addForce.setStroke(Color.grayRgb(60));
-        addForce.setFill(Color.grayRgb(60));
+        Text addForce = new Text("New Force");
+        addForce.setId("largeTextSideBar");
         vbox.getChildren().add(addForce);
 
         HBox nodeNameH = new HBox();
 
-        Text nodeName = new Text();
-        nodeName.setText("Specify Node: ");
-        nodeName.setFont(new Font("DejaVu Sans Mono", 14));
-        nodeName.setStroke(Color.grayRgb(60));
-        nodeName.setFill(Color.grayRgb(60));
+        Text nodeName = new Text("Specify Node: ");
+        nodeName.setId("smallerTextSideBar");
         nodeNameH.getChildren().add(nodeName);
         
         TextField nodeNameField = new TextField();
@@ -704,33 +670,24 @@ public class App extends Application
 
         HBox forceAmountH = new HBox();
         
-        Text forceAm = new Text();
-        forceAm.setText("Force Magnitude: ");
-        forceAm.setFont(new Font("DejaVu Sans Mono", 14));
-        forceAm.setStroke(Color.grayRgb(60));
-        forceAm.setFill(Color.grayRgb(60));
+        Text forceAm = new Text("Force Magnitude: ");
+        forceAm.setId("smallerTextSideBar");
         forceAmountH.getChildren().add(forceAm);
 
         TextField forceAmField = new TextField();
         textfields[FORCEVAL] = forceAmField;
         forceAmountH.getChildren().add(forceAmField);
 
-        Text end = new Text();
-        end.setText(" kN");
-        end.setFont(new Font("DejaVu Sans Mono", 14));
-        end.setStroke(Color.grayRgb(60));
-        end.setFill(Color.grayRgb(60));
+        Text end = new Text(" kN");
+        end.setId("smallerTextSideBar");
         forceAmountH.getChildren().add(end);
 
         vbox.getChildren().add(forceAmountH);
 
         HBox forceDirH = new HBox();
 
-        Text forceDir = new Text();
-        forceDir.setText("Force Direction: ");
-        forceDir.setFont(new Font("DejaVu Sans Mono", 14));
-        forceDir.setStroke(Color.grayRgb(60));
-        forceDir.setFill(Color.grayRgb(60));
+        Text forceDir = new Text("Force Direction: ");
+        forceDir.setId("smallerTextSideBar");
         forceDirH.getChildren().add(forceDir);
         
         TextField forceDirField = new TextField();
@@ -824,36 +781,35 @@ public class App extends Application
         Joint curJoint;
         double temp;
 
-        //Certain values are rounded off to 0 (values between 5e-7 and -5e-7)
+        //Certain values are rounded off to 0 (values between 5e-16 and -5e-16)
         //because those values are almost always there* due to floating point 
         //errors in sines and cosines, which then cause massive errors in the 
         //values for the forces in the beams because of gaussian elimination
         
-        //*they would not be floating point errors if the user wished to have
-        // an angle of 89.99997 degrees or 0.00003 degrees on their beam, but
-        // I am assuming that is not what the user wanted, and instead wanted
-        // 90 degrees or 0 degrees, respectively
+        //*2^-52 is the unavoidable error, which is approximately 2.22e-16. This
+        //value came up repeatedly during testing, and 5e-16 was used as the 
+        //limit instead of 2.22e-16 in order to have a margin of error
         for (int i = 0; i < matrix.length; i+=2){
             curJoint = nodes.get(i/2);
             if (curJoint == pin){
                 temp =  Math.sin(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i][matWid-3] = temp;
                     matrix[i+1][matWid-4] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i+1][matWid-3] = temp;
                     matrix[i][matWid-4] = temp;
                 }
             }
             else if (curJoint == rol){
                 temp = Math.sin(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i][matWid-2] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i+1][matWid-2] = temp;
                 }
             }
@@ -861,13 +817,13 @@ public class App extends Application
             fy = 0;
             for (int j = 0; j < curJoint.getForceVals().size(); j++){
                 double F = curJoint.getForceVals().get(j);
-                temp = F*Math.cos(Math.toRadians(curJoint.getForceDirs().get(j)));
-                if (temp < -5e-7 || temp > 5e-7){
-                    fx -= temp;
+                temp = Math.cos(Math.toRadians(curJoint.getForceDirs().get(j)));
+                if (temp < -5e-16 || temp > 5e-16){
+                    fx -= F*temp;
                 }
-                temp = F*Math.sin(Math.toRadians(curJoint.getForceDirs().get(j)));
-                if (temp < -5e-7 || temp > 5e-7){
-                    fy -= temp;
+                temp = Math.sin(Math.toRadians(curJoint.getForceDirs().get(j)));
+                if (temp < -5e-16 || temp > 5e-16){
+                    fy -= F*temp;
                 }
             }
             matrix[i][matWid-1] = fy;
@@ -877,11 +833,11 @@ public class App extends Application
                 Joint a = b.getJointA() == curJoint ? b.getJointB() : b.getJointA();
                 double theta = Math.atan2(a.getUY()-curJoint.getUY(), a.getUX()-curJoint.getUX());
                 temp = Math.sin(theta);
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i][beams.indexOf(b)] = temp;
                 }
                 temp = Math.cos(theta);
-                if (temp < -5e-7 || temp > 5e-7){
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i+1][beams.indexOf(b)] = temp;
                 }
             }

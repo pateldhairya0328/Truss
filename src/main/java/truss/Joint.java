@@ -23,7 +23,7 @@ public class Joint extends Circle{
     public Joint(){
         this.displayName.setText(name);
         this.displayName.setStroke(Color.BLACK);
-        this.displayName.setStrokeWidth(0.1);;
+        this.displayName.setStrokeWidth(0.1);
         this.displayName.setFill(Color.WHITE);
         this.displayName.setFont(new Font("DejaVu Sans Mono", 2*this.getRadius()));
         App.group.getChildren().remove(App.vbox);

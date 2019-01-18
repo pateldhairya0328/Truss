@@ -45,7 +45,7 @@ public class InputHandling{
                     System.out.println("hello");
                     if (me.getButton() == MouseButton.PRIMARY){
                         MenuItem name = new MenuItem("Name: "+b.getName());
-                        MenuItem force = new MenuItem("Force: "+b.getForce());
+                        MenuItem force = new MenuItem("Force: "+b.getForceText());
                         cm = new ContextMenu(name, force);
                     }
                     else if (me.getButton() == MouseButton.SECONDARY){
@@ -189,17 +189,6 @@ public class InputHandling{
             pOffsetX += (me.getSceneX()-mouseX);
             pOffsetY += (me.getSceneY()-mouseY);
 
-            List<Double> newPoints;
-            for (Beam b: beams){
-                newPoints = new ArrayList<Double>();
-                for (int i = 0; i < b.getPoints().size(); i+=2){
-                    newPoints.add(b.getPoints().get(i)+me.getSceneX()-mouseX);
-                    newPoints.add(b.getPoints().get(i+1)+me.getSceneY()-mouseY);
-                }
-                b.getPoints().clear();
-                b.getPoints().addAll(newPoints);
-            }
-
             for (Joint j: nodes){
                 j.setCenterX(j.getCenterX()+me.getSceneX()-mouseX);
                 j.setCenterY(j.getCenterY()+me.getSceneY()-mouseY);
@@ -210,6 +199,23 @@ public class InputHandling{
                 }
             }
             
+            List<Double> newPoints;
+            for (Beam b: beams){
+                newPoints = new ArrayList<Double>();
+                for (int i = 0; i < b.getPoints().size(); i+=2){
+                    newPoints.add(b.getPoints().get(i)+me.getSceneX()-mouseX);
+                    newPoints.add(b.getPoints().get(i+1)+me.getSceneY()-mouseY);
+                }
+                b.getForce().setX(0.5*(b.getJointA().getCenterX()+b.getJointB().getCenterX()));
+                b.getForce().setY(0.5*(b.getJointA().getCenterY()+b.getJointB().getCenterY()));
+                b.getPoints().clear();
+                b.getPoints().addAll(newPoints);
+            }
+
+            for (Arrow a: reactionForces){
+                a.recalc();
+            }
+
             mouseX = me.getSceneX();
             mouseY = me.getSceneY();
 
@@ -323,8 +329,13 @@ public class InputHandling{
                     a.recalc();
                 }
             }
+
             for (Beam b: beams){
                 b.recalc();
+            }
+
+            for (Arrow a: reactionForces){
+                a.recalc();
             }
             draw();
         }
@@ -427,7 +438,7 @@ public class InputHandling{
                 double angle = Double.parseDouble(textfields[FORCEDIR].getText());
                 j.getForceVals().add(text);
                 j.getForceDirs().add(angle);
-                Arrow a = new Arrow(j, -angle);
+                Arrow a = new Arrow(j, -angle, text);
                 j.getArrows().add(a);
                 group.getChildren().add(j.getArrows().get(j.getArrows().size()-1));
             }catch (NullPointerException npe){

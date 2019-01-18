@@ -13,9 +13,7 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
@@ -80,7 +78,7 @@ public class App extends Application
     static ArrayList<Joint> nodes = new ArrayList<Joint>(0);
     static Map<String, Joint> nodeMap = new HashMap<String, Joint>(0);
     static ArrayList<Beam> beams = new ArrayList<Beam>(0);
-
+    static ArrayList<Arrow> reactionForces = new ArrayList<Arrow>(0);
     static int indexOfPin = -1;
     static int indexOfRoller = -1;
     
@@ -178,7 +176,6 @@ public class App extends Application
         {
             scene = new Scene(group, pWidth, pHeight);
             scene.getStylesheets().add("/textformats.css");
-            scene.getStylesheets().add("/buttonformats.css");
             scene.addEventHandler(MouseEvent.MOUSE_CLICKED, InputHandling.screenClick);
             scene.addEventHandler(MouseDragEvent.MOUSE_DRAGGED, InputHandling.screenDragged);
             scene.addEventHandler(MouseEvent.MOUSE_MOVED, InputHandling.mouseMoved);
@@ -795,12 +792,18 @@ public class App extends Application
                 temp =  Math.sin(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
                     matrix[i][matWid-3] = temp;
-                    matrix[i+1][matWid-4] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
                     matrix[i+1][matWid-3] = temp;
+                }
+                temp =  Math.sin(Math.toRadians(curJoint.getAngle()-90));
+                if (temp < -5e-16 || temp > 5e-16){
                     matrix[i][matWid-4] = temp;
+                }
+                temp = Math.cos(Math.toRadians(curJoint.getAngle()-90));
+                if (temp < -5e-16 || temp > 5e-16){
+                    matrix[i+1][matWid-4] = temp;
                 }
             }
             else if (curJoint == rol){
@@ -845,20 +848,52 @@ public class App extends Application
 
         matrix = gaussianElimination(matrix);
 
-        String toShow = "Beams:\n";
         DecimalFormat dff = new DecimalFormat("#.####");
         for (int i = 0; i < beams.size(); i++){
-            toShow += beams.get(i).getName()+": "+dff.format(matrix[i][matrix[i].length-1])+" kN\n";
-            beams.get(i).setForce(dff.format(matrix[i][matrix[i].length-1])+" kN\n");
+            beams.get(i).setForce(dff.format(matrix[i][matrix[i].length-1])+" kN");
         }
-        toShow += "Supports:\n";
-        toShow += "Pinned Support:\nParallel: " + dff.format(matrix[matrix.length-2][matrix[0].length-1])+" kN\n";
-        toShow += "Perpendicular: " + dff.format(matrix[matrix.length-3][matrix[0].length-1])+" kN\n";
-        toShow += "Roller Support:\nParallel: " + dff.format(matrix[matrix.length-1][matrix[0].length-1])+" kN\n";
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, toShow, ButtonType.OK);
-        alert.setHeaderText(null);
-        alert.showAndWait();
+        for (Arrow a: reactionForces){
+            group.getChildren().remove(a);
+        }
+
+        reactionForces.clear();
+        
+        //forces with a magnitude less than 5e-6 kN, or 5 mN are not shown
+        //as those forces are less than the 1/10th of the force exerted on
+        //a US quarter by gravity, so these forces are considered entirely
+        //insignificant
+        
+        double force = matrix[matrix.length-2][matrix[0].length-1];
+        if (force < 5e-6 && force > -5e-6){}
+        else if (force > 0){
+            reactionForces.add(new Arrow(pin, -pin.getAngle(), force, true));   
+        }
+        else if (force < 0){
+            reactionForces.add(new Arrow(pin, pin.getAngle(), -force, true));             
+        }
+        
+        force = matrix[matrix.length-3][matrix[0].length-1];
+        if (force < 5e-6 && force > -5e-6){}
+        else if (force > 0){
+            reactionForces.add(new Arrow(pin, pin.getAngle()-90, force, true));
+        }
+        else if (force < 0){
+            reactionForces.add(new Arrow(pin, -pin.getAngle()+90, -force, true));
+        }
+
+        force = matrix[matrix.length-1][matrix[0].length-1];
+        if (force < 5e-6 && force > -5e-6){}
+        else if (force > 0){
+            reactionForces.add(new Arrow(rol, -rol.getAngle(), force, true));
+        }
+        else if (force < 0){
+            reactionForces.add(new Arrow(rol, rol.getAngle(), -force, true));
+        }
+
+        for (Arrow a: reactionForces){
+            group.getChildren().add(a);
+        }
     }
 
     static double[][] gaussianElimination(double [][] matrix){

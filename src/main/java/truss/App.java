@@ -1,10 +1,11 @@
 package truss;
 
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.Scanner;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -34,15 +35,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-/**
- * Hello world!
- *
- */
 public class App extends Application
 {
     //variables that start with p represent things in pixels
@@ -59,7 +58,8 @@ public class App extends Application
     static Group group;
     static GraphicsContext gc;
     static VBox vbox = new VBox();
-    
+    static VBox helpVBox = new VBox();
+
     static DecimalFormat df = new DecimalFormat("#");
     
     static final int NODENAME = 0, NODEX = 1, NODEY = 2, BEAMNODEA = 3, BEAMNODEB = 4, FORCENODE = 5, FORCEVAL = 6, FORCEDIR = 7;
@@ -82,7 +82,6 @@ public class App extends Application
     static int indexOfPin = -1;
     static int indexOfRoller = -1;
     
-    //TODO: Help section in side bar
     public static void main(String[] args) {
         launch();
     }
@@ -102,7 +101,11 @@ public class App extends Application
         gc = canvas.getGraphicsContext2D();
         draw();
         group.getChildren().add(canvas);
-        
+        try{
+            makeHelp();
+        }catch(IOException ioe){
+            System.out.println(ioe.getMessage());
+        };
         makeSidebar();
 
         Button showOptions = new Button();
@@ -523,11 +526,11 @@ public class App extends Application
     }
 
     void sidebarMakeNode(){
-        Text newNode = new Text("New Node");
+        Text newNode = new Text("New Joint");
         newNode.setId("largeTextSideBar");
         vbox.getChildren().add(newNode);
 
-        Text nodeName = new Text("Enter Node Name: ");
+        Text nodeName = new Text("Enter Joint Name: ");
         nodeName.setId("smallTextSideBar");
         vbox.getChildren().add(nodeName);
 
@@ -607,7 +610,7 @@ public class App extends Application
         rdButtons[PIN] = pinnedSupport;
         rdButtons[FIXED] = fixedSupport;
 
-        Button addNode = new Button("Add Node");
+        Button addNode = new Button("Add Joint");
         buttons[ADDNODE] = addNode;
         BorderPane addNodeButton = new BorderPane(addNode);
         vbox.getChildren().add(addNodeButton);
@@ -620,7 +623,7 @@ public class App extends Application
 
         HBox firstNode = new HBox();
 
-        Text nodeOne = new Text("First Node: ");
+        Text nodeOne = new Text("First Joint: ");
         nodeOne.setId("smallerTextSideBar");
         firstNode.getChildren().add(nodeOne);
         
@@ -632,7 +635,7 @@ public class App extends Application
 
         HBox SecondNode = new HBox();
 
-        Text nodeTwo = new Text("Second Node: ");
+        Text nodeTwo = new Text("Second Joint: ");
         nodeTwo.setId("smallerTextSideBar");
         SecondNode.getChildren().add(nodeTwo);
         
@@ -655,7 +658,7 @@ public class App extends Application
 
         HBox nodeNameH = new HBox();
 
-        Text nodeName = new Text("Specify Node: ");
+        Text nodeName = new Text("Specify Joint: ");
         nodeName.setId("smallerTextSideBar");
         nodeNameH.getChildren().add(nodeName);
         
@@ -704,6 +707,7 @@ public class App extends Application
         buttons[ADDBEAM].setOnAction(InputHandling.addBeamEventHandler);
         buttons[ADDFORCE].setOnAction(InputHandling.addForceEventHandler);
         buttons[CALC].setOnAction(InputHandling.calculate);
+        buttons[OPTIONS].setOnAction(InputHandling.helpAlert);
         textfields[NODENAME].setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent ae){
                 textfields[NODEX].requestFocus();
@@ -754,7 +758,7 @@ public class App extends Application
             }
         }
 
-        if (!(cfRoller == 1 && cfPin == 1 && cfFixed == 0) && !(cfRoller == 0 && cfPin == 0 && cfFixed == 1)){
+        if (!(cfRoller >= 1 && cfPin == 1 && cfFixed == 0) && !(cfRoller == 0 && cfPin == 0 && cfFixed == 1)){
             InputHandling.showError("There must be either JUST one roller and one pin support OR JUST one fixed support.");
             return false;
         }
@@ -778,6 +782,11 @@ public class App extends Application
         Joint curJoint;
         double temp;
 
+        final int PIN_PERPENDICULAR = matWid-4;
+        final int PIN_PARALLEL = matWid-3;
+        final int ROLLER_PARALLEL = matWid-2;
+        final int EXTERNAL_FORCE = matWid-1;
+        
         //Certain values are rounded off to 0 (values between 5e-16 and -5e-16)
         //because those values are almost always there* due to floating point 
         //errors in sines and cosines, which then cause massive errors in the 
@@ -791,29 +800,29 @@ public class App extends Application
             if (curJoint == pin){
                 temp =  Math.sin(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][matWid-3] = temp;
+                    matrix[i][PIN_PARALLEL] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][matWid-3] = temp;
+                    matrix[i+1][PIN_PARALLEL] = temp;
                 }
                 temp =  Math.sin(Math.toRadians(curJoint.getAngle()-90));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][matWid-4] = temp;
+                    matrix[i][PIN_PERPENDICULAR] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()-90));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][matWid-4] = temp;
+                    matrix[i+1][PIN_PERPENDICULAR] = temp;
                 }
             }
             else if (curJoint == rol){
                 temp = Math.sin(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][matWid-2] = temp;
+                    matrix[i][ROLLER_PARALLEL] = temp;
                 }
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
                 if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][matWid-2] = temp;
+                    matrix[i+1][ROLLER_PARALLEL] = temp;
                 }
             }
             fx = 0;
@@ -829,8 +838,8 @@ public class App extends Application
                     fy -= F*temp;
                 }
             }
-            matrix[i][matWid-1] = fy;
-            matrix[i+1][matWid-1] = fx;
+            matrix[i][EXTERNAL_FORCE] = fy;
+            matrix[i+1][EXTERNAL_FORCE] = fx;
             
             for (Beam b: curJoint.getBeams()){
                 Joint a = b.getJointA() == curJoint ? b.getJointB() : b.getJointA();
@@ -894,6 +903,290 @@ public class App extends Application
         for (Arrow a: reactionForces){
             group.getChildren().add(a);
         }
+    }
+
+    /**
+     * Makes the help menu
+     */
+    static void makeHelp() throws IOException{
+        Scanner in = new Scanner(App.class.getResourceAsStream("/helpAssets/HelpMenu.txt"), "UTF-8");
+        Text text;
+
+        //Title
+        {
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.MEDIUM, 24));
+            helpVBox.getChildren().add(text);
+
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+        }
+
+        //Intro
+        {
+            for (int i = 0; i < 17; ++i){
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+            }
+        }
+
+        //Joint
+        {
+            //Joint intro
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 20));
+            helpVBox.getChildren().add(text);
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+            
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+                        
+            Image img = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView imgView = new ImageView(img);
+            double ratio = img.getHeight()/img.getWidth();
+            imgView.setFitWidth(0.25*pWidth);
+            imgView.setFitHeight(0.25*pWidth*ratio);
+            helpVBox.getChildren().add(imgView);
+
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
+            for (int i = 0; i < 3; i++){
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+                helpVBox.getChildren().add(text);
+
+                separator = new Separator(Orientation.HORIZONTAL);
+                separator.setMaxWidth(text.getLayoutBounds().getWidth());
+                helpVBox.getChildren().add(separator);
+        
+                text = new Text(in.nextLine());
+                text.setWrappingWidth(pWidth/2);
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+                
+                img = new Image(App.class.getResourceAsStream(in.nextLine()));
+                imgView = new ImageView(img);
+                ratio = img.getHeight()/img.getWidth();
+                if (i != 2){
+                    imgView.setFitWidth(0.375*pWidth);
+                    imgView.setFitHeight(0.375*pWidth*ratio);
+                }
+                else{
+                    imgView.setFitWidth(0.125*pWidth);
+                    imgView.setFitHeight(0.125*pWidth*ratio);
+                }
+                helpVBox.getChildren().add(imgView);
+
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+            }
+        }
+
+        //Beam
+        {
+            //Force intro
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 20));
+            helpVBox.getChildren().add(text);
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+            
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+                        
+            Image img = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView imgView = new ImageView(img);
+            double ratio = img.getHeight()/img.getWidth();
+            imgView.setFitWidth(0.25*pWidth);
+            imgView.setFitHeight(0.25*pWidth*ratio);
+            helpVBox.getChildren().add(imgView);
+
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
+            for (int i = 0; i < 2; i++){
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+                helpVBox.getChildren().add(text);
+
+                separator = new Separator(Orientation.HORIZONTAL);
+                separator.setMaxWidth(text.getLayoutBounds().getWidth());
+                helpVBox.getChildren().add(separator);
+        
+                text = new Text(in.nextLine());
+                text.setWrappingWidth(pWidth/2);
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+                
+                img = new Image(App.class.getResourceAsStream(in.nextLine()));
+                imgView = new ImageView(img);
+                ratio = img.getHeight()/img.getWidth();
+                imgView.setFitWidth(0.375*pWidth/(i+1));
+                imgView.setFitHeight(0.375*pWidth*ratio/(i+1));
+                helpVBox.getChildren().add(imgView);
+
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+            }
+        }
+        
+        //Force
+        {
+            //Force intro
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 20));
+            helpVBox.getChildren().add(text);
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+            
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+                        
+            Image img = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView imgView = new ImageView(img);
+            double ratio = img.getHeight()/img.getWidth();
+            imgView.setFitWidth(0.125*pWidth);
+            imgView.setFitHeight(0.125*pWidth*ratio);
+            helpVBox.getChildren().add(imgView);
+
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
+            for (int i = 0; i < 2; i++){
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+                helpVBox.getChildren().add(text);
+
+                separator = new Separator(Orientation.HORIZONTAL);
+                separator.setMaxWidth(text.getLayoutBounds().getWidth());
+                helpVBox.getChildren().add(separator);
+        
+                text = new Text(in.nextLine());
+                text.setWrappingWidth(pWidth/2);
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+
+                text = new Text(in.nextLine());
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                helpVBox.getChildren().add(text);
+            }
+        }
+
+        //Solve Truss
+        {
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 20));
+            helpVBox.getChildren().add(text);
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+            
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+            
+            Image img = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView imgView = new ImageView(img);
+            double ratio = img.getHeight()/img.getWidth();
+            imgView.setFitWidth(0.45*pWidth);
+            imgView.setFitHeight(0.45*pWidth*ratio);
+            helpVBox.getChildren().add(imgView);
+
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+        }
+
+        //Other
+        {
+            //Other title
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 20));
+            helpVBox.getChildren().add(text);
+            Separator separator = new Separator(Orientation.HORIZONTAL);
+            helpVBox.getChildren().add(separator);
+            
+            //Sidebar
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+            helpVBox.getChildren().add(text);
+
+            separator = new Separator(Orientation.HORIZONTAL);
+            separator.setMaxWidth(text.getLayoutBounds().getWidth());
+            helpVBox.getChildren().add(separator);
+    
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+            
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
+            //Grid Display
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+            helpVBox.getChildren().add(text);
+            
+            separator = new Separator(Orientation.HORIZONTAL);
+            separator.setMaxWidth(text.getLayoutBounds().getWidth());
+            helpVBox.getChildren().add(separator);
+    
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+            
+            Image shg = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView showHideGrid = new ImageView(shg);
+            double ratio = shg.getHeight()/shg.getWidth();
+            showHideGrid.setFitWidth(0.25*pWidth);
+            showHideGrid.setFitHeight(0.25*pWidth*ratio);
+            helpVBox.getChildren().add(showHideGrid);
+
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+            
+            //Error Message
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+            helpVBox.getChildren().add(text);
+            
+            separator = new Separator(Orientation.HORIZONTAL);
+            separator.setMaxWidth(text.getLayoutBounds().getWidth());
+            helpVBox.getChildren().add(separator);
+    
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+            
+            Image errorImg = new Image(App.class.getResourceAsStream(in.nextLine()));
+            ImageView errorImageView = new ImageView(errorImg);
+            ratio = errorImg.getHeight()/errorImg.getWidth();
+            errorImageView.setFitWidth(0.25*pWidth);
+            errorImageView.setFitHeight(0.25*pWidth*ratio);
+            helpVBox.getChildren().add(errorImageView);
+        }
+
+        in.close();
     }
 
     static double[][] gaussianElimination(double [][] matrix){

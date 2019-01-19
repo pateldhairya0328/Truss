@@ -1,0 +1,71 @@
+Truss Solver Help Menu
+This help section will show how to use this program and will cover the following topics:
+    • Joints
+        ◦ Supports
+        ◦ Add Joint
+        ◦ Remove Joint
+    • Beams
+        ◦ Add Beam
+        ◦ Remove Beam
+    • External Forces
+        ◦ Add Forces
+        ◦ Remove Forces
+    • Solving Truss
+    • Other
+        ◦ Sidebar
+        ◦ Grid Display
+        ◦ Error Messages
+
+Joints
+The joints in the truss are the points where beams connect to other beams, or in other words they are the end points of beams. In this program, you must add the joints for a beam first before you add the beam itself, or the forces on that joint. Each joint will have the name assigned to it written on it (it is suggested to use single letter names if possible). Normal joints are gray, while the supports are colored, as shown in the picture below:
+/helpAssets/jointTypes.png
+
+Supports
+The supports are the joints that bind the truss to a foundation, and exert reaction forces to keep the truss balanced. Pinned supports (red) exert forces in two directions perpendicular to each other, while roller supports (blue) only exert forces in one direction. For a statically determinate truss, exactly one pinned support and at least one roller support are required. Initially, both supports are oriented vertically when added, so the pinned support exerts forces vertically and horizontally, while the roller support exerts forces vertically. Right clicking on a support and selecting "Change Orientation" brings up a dialog allowing you to reorient the support to any other angle.
+/helpAssets/changeOri.png
+
+Add Joint
+To add a regular joint (not a support), go to the "New Joint" section, and fill out the name and coordinates for the joint to add. It is suggested that single letter names be used (but it is not necessary). After filling the three fields, click the "Add Joint" button and the joint will be added. For mouse free input, pressing "Enter" will allow you to move to the next field, and pressing "Enter" in the third field will add the joint. To add a support instead of a joint, select one of the two buttons picturing the two kinds of supports. Selecting the support on rollers will add a roller support, and selecting the other will add a pinned support.
+/helpAssets/newJoint.png
+
+Remove Joint
+To remove a joint, right click on the joint, then click "Delete". Keep in mind, deleting the joint will also delete all forces and beams attached to it as well.
+/helpAssets/delJoint.png
+
+Beams
+The beams are the things that carry the forces in the truss, and are put between two joints.
+/helpAssets/beam.png
+
+Add Beam
+To add a beam between two joints, you can enter the name of the two joints (case-sensitive) in the "Add Beam" section of the sidebar. Another method to add beams is to click on any joint and then drag your mouse over the other joint, and a beam will be made between the two joints when you release.
+/helpAssets/addBeam.png
+
+Remove Beam
+remove_beam_sample_text
+/helpAssets/delBeam.png
+
+External Forces
+The external forces are what act on the truss. The forces are represented by an arrow with a number representing the magnitude of the force. Forces in black are external forces, and forces in purple are the reaction forces at a support.
+/helpAssets/forces.png
+
+Add Force
+You can add a force at any joint by filling out the fields in the "Add Force" section of the sidebar. You must enter the joint where the force acts, the magnitude of the force (in kN) and the angle of the force in degrees above the horizontal to the right (0 is right, 90 is up).
+
+Remove Forces
+You can only remove all forces at a joint together. To do so, right click a joint and click "Remove Forces".
+
+Solving Truss
+After you have made the truss and added all the forces, you can solve the truss by clicking the green "Calculate" button in the sidebar. The truss will only be calculated if it is statically determinate. After the values are calculated, each beam will display the value of force it carries on it, with positive values indicating tension and negative values indicating tension. There will also be reaction forces added to the supports. The truss will look something like this after being solved:
+/helpAssets/solvedTruss.png
+
+Other
+Sidebar
+The sidebar can be found on the left side of the screen and has options to add joints, beams and forces to the truss design. The sidebar also includes the buttons to access this help menu and to calculate the forces in the truss. Clicking the arrow in the top right corner of the sidebar allows you to hide it, and clicking it again will reveal the sidebar again.
+
+Grid Display
+The display is initially shown as a grid with major and minor gridlines as well as axis labels in meters. Scrolling allows you to zoom in or out in order to better fit your needs. Clicking and moving your mouse will also let you drag the grid around. Right clicking any empty place on the screen will bring up a pop-up menu, where the first option is "Change grid". The two options in "Change grid" (shown below) allow you to show or hide the entire grid or just the minor gridlines.
+/helpAssets/showHideGrid.png
+
+Error Messages
+If you do an incorrect action, such as inputing non-real numbers for force values, or leaving a necessary field empty, and error message will show up. Following the message in the error message will allow you to use the program correctly. An example of an error message (where the joint name field was left empty):
+/helpAssets/errImg.png

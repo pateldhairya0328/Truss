@@ -9,12 +9,14 @@ import javafx.event.EventHandler;
 import javafx.event.ActionEvent;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;   
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -23,8 +25,6 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.Image;
 
 public class InputHandling{
     static double mouseX = 0, mouseY = 0;
@@ -70,13 +70,7 @@ public class InputHandling{
             if (me.getButton() == MouseButton.PRIMARY){
             }
             else if (me.getButton() == MouseButton.SECONDARY){
-                MenuItem m = new MenuItem("test");
-                MenuItem mm = new MenuItem ("this is a longer test");
                 CheckMenuItem changeGrid = new CheckMenuItem("Show/Hide Grid");
-                ImageView iv = new ImageView(new Image(getClass().getResourceAsStream("Show_Grid.png")));
-                iv.setFitWidth(15);
-                iv.setFitHeight(15);
-                changeGrid.setGraphic(iv);
                 changeGrid.setOnAction(new EventHandler<ActionEvent>() {
                     public void handle(ActionEvent e) {
                         visibleGrid = !visibleGrid;
@@ -85,10 +79,6 @@ public class InputHandling{
                 });
 
                 CheckMenuItem changeMinorGrid = new CheckMenuItem("Show/Hide Minor Gridlines");
-                iv = new ImageView(new Image(getClass().getResourceAsStream("Show_Grid_Minor.png")));
-                iv.setFitWidth(15);
-                iv.setFitHeight(15);
-                changeMinorGrid.setGraphic(iv);
                 changeMinorGrid.setOnAction(new EventHandler<ActionEvent>() {
                     public void handle(ActionEvent e) {
                         visibleMinorGrid = !visibleMinorGrid;
@@ -97,8 +87,10 @@ public class InputHandling{
                 });
 
                 Menu showHideGrid = new Menu("Change Grid", null, changeGrid, changeMinorGrid);
+                CheckMenuItem helpItem = new CheckMenuItem("Help");
+                helpItem.setOnAction(helpAlert);
+                ContextMenu cm = new ContextMenu(showHideGrid, new SeparatorMenuItem(), helpItem);
                 
-                ContextMenu cm = new ContextMenu(m, mm, new SeparatorMenuItem(), showHideGrid);
                 cm.show(primaryStage, me.getSceneX(), me.getSceneY());
             }
             else{   
@@ -162,9 +154,10 @@ public class InputHandling{
                     public void handle(ActionEvent ae){
                         try{
                             TextInputDialog tid = new TextInputDialog();
-                            tid.setTitle("Enter angle of support.");
-                            tid.setHeaderText(null);
+                            tid.setTitle("Orientation of support");
+                            tid.setHeaderText("Enter angle of support in degrees above the horizontal (default is 90):");
                             tid.showAndWait();
+                            tid.setHeight(500);
                             double newAng = Double.parseDouble(tid.getEditor().getText());
                             toChange.setAngle(newAng);
                         }catch(NumberFormatException nfe){
@@ -469,4 +462,18 @@ public class InputHandling{
         alert.setHeaderText(null);
         alert.showAndWait();
     }
+
+    static EventHandler<ActionEvent> helpAlert = new EventHandler<ActionEvent>() {
+        public void handle(ActionEvent ae){
+            Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
+            helpAlert.setHeaderText(null);
+            helpAlert.setWidth(pWidth/2);
+            ScrollPane sp = new ScrollPane(helpVBox);
+            sp.setStyle("-fx-background-color:transparent;");
+            sp.setPrefHeight(0.8*pHeight);
+            sp.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+            helpAlert.getDialogPane().setContent(sp);
+            helpAlert.showAndWait();
+        }
+    };
 }

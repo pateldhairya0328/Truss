@@ -82,6 +82,7 @@ public class App extends Application
     static int indexOfPin = -1;
     static int indexOfRoller = -1;
     
+    //TODO: Fix that removing beams doesn't remove force values
     public static void main(String[] args) {
         launch();
     }
@@ -787,56 +788,37 @@ public class App extends Application
         final int ROLLER_PARALLEL = matWid-2;
         final int EXTERNAL_FORCE = matWid-1;
         
-        //Certain values are rounded off to 0 (values between 5e-16 and -5e-16)
-        //because those values are almost always there* due to floating point 
-        //errors in sines and cosines, which then cause massive errors in the 
-        //values for the forces in the beams because of gaussian elimination
-        
-        //*2^-52 is the unavoidable error, which is approximately 2.22e-16. This
-        //value came up repeatedly during testing, and 5e-16 was used as the 
-        //limit instead of 2.22e-16 in order to have a margin of error
+        //All values are rounded to the nearest 10^-14 since slight errors in extremely
+        //small values (order of 10^-16) cause massive problem, so by rounding those 
+        //values are turned to 0 (which is what they should be if not for unavoidable
+        //floating point precision errors)
         for (int i = 0; i < matrix.length; i+=2){
             curJoint = nodes.get(i/2);
             if (curJoint == pin){
                 temp =  Math.sin(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][PIN_PARALLEL] = temp;
-                }
+                matrix[i][PIN_PARALLEL] = 1e-14*Math.round(1e14*temp);
+                matrix[i+1][PIN_PERPENDICULAR] = 1e-14*Math.round(1e14*temp);
+
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][PIN_PARALLEL] = temp;
-                }
-                temp =  Math.sin(Math.toRadians(curJoint.getAngle()-90));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][PIN_PERPENDICULAR] = temp;
-                }
-                temp = Math.cos(Math.toRadians(curJoint.getAngle()-90));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][PIN_PERPENDICULAR] = temp;
-                }
+                matrix[i+1][PIN_PARALLEL] = 1e-14*Math.round(1e14*temp);
+                matrix[i][PIN_PERPENDICULAR] = 1e-14*Math.round(1e14*temp);
             }
             else if (curJoint == rol){
                 temp = Math.sin(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][ROLLER_PARALLEL] = temp;
-                }
+                matrix[i][ROLLER_PARALLEL] = 1e-14*Math.round(1e14*temp);
+
                 temp = Math.cos(Math.toRadians(curJoint.getAngle()));
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][ROLLER_PARALLEL] = temp;
-                }
+                matrix[i+1][ROLLER_PARALLEL] = 1e-14*Math.round(1e14*temp);
             }
             fx = 0;
             fy = 0;
             for (int j = 0; j < curJoint.getForceVals().size(); j++){
                 double F = curJoint.getForceVals().get(j);
                 temp = Math.cos(Math.toRadians(curJoint.getForceDirs().get(j)));
-                if (temp < -5e-16 || temp > 5e-16){
-                    fx -= F*temp;
-                }
-                temp = Math.sin(Math.toRadians(curJoint.getForceDirs().get(j)));
-                if (temp < -5e-16 || temp > 5e-16){
-                    fy -= F*temp;
-                }
+                fx -= F*temp;
+
+                temp = Math.sin(Math.toRadians(curJoint.getForceDirs().get(j)));             
+                fy -= F*temp;
             }
             matrix[i][EXTERNAL_FORCE] = fy;
             matrix[i+1][EXTERNAL_FORCE] = fx;
@@ -845,18 +827,14 @@ public class App extends Application
                 Joint a = b.getJointA() == curJoint ? b.getJointB() : b.getJointA();
                 double theta = Math.atan2(a.getUY()-curJoint.getUY(), a.getUX()-curJoint.getUX());
                 temp = Math.sin(theta);
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i][beams.indexOf(b)] = temp;
-                }
+                matrix[i][beams.indexOf(b)] = 1e-14*Math.round(1e14*temp);
+
                 temp = Math.cos(theta);
-                if (temp < -5e-16 || temp > 5e-16){
-                    matrix[i+1][beams.indexOf(b)] = temp;
-                }
+                matrix[i+1][beams.indexOf(b)] = 1e-14*Math.round(1e14*temp);
             }
         }
 
         matrix = gaussianElimination(matrix);
-
         DecimalFormat dff = new DecimalFormat("#.####");
         for (int i = 0; i < beams.size(); i++){
             beams.get(i).setForce(dff.format(matrix[i][matrix[i].length-1])+" kN");
@@ -872,7 +850,6 @@ public class App extends Application
         //as those forces are less than the 1/10th of the force exerted on
         //a US quarter by gravity, so these forces are considered entirely
         //insignificant
-        
         double force = matrix[matrix.length-2][matrix[0].length-1];
         if (force < 5e-6 && force > -5e-6){}
         else if (force > 0){

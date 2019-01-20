@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -14,7 +15,9 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
@@ -65,8 +68,8 @@ public class App extends Application
     static final int NODENAME = 0, NODEX = 1, NODEY = 2, BEAMNODEA = 3, BEAMNODEB = 4, FORCENODE = 5, FORCEVAL = 6, FORCEDIR = 7;
     static TextField[] textfields = new TextField[8];
 
-    static final int ADDNODE = 0, ADDBEAM = 1, ADDFORCE = 2, OPTIONS = 3, CALC = 4;
-    static Button[] buttons = new Button[5];
+    static final int ADDNODE = 0, ADDBEAM = 1, ADDFORCE = 2, OPTIONS = 3, CALC = 4, RESET = 5;
+    static Button[] buttons = new Button[6];
 
     static final int ROLLER = 0, PIN = 1, FIXED = 2, NOTSUPP = 3;
     static RadioButton[] rdButtons = new RadioButton[3];
@@ -82,7 +85,6 @@ public class App extends Application
     static int indexOfPin = -1;
     static int indexOfRoller = -1;
     
-    //TODO: Fix that removing beams doesn't remove force values
     public static void main(String[] args) {
         launch();
     }
@@ -509,12 +511,16 @@ public class App extends Application
 
         Button options = new Button("Help");
         Button calc = new Button("Calculate!");
+        Button reset = new Button("Reset");
+        options.setId("helpButton");
         calc.setId("calculateButton");
+        reset.setId("resetButton");
         
         buttons[OPTIONS] = options;
         buttons[CALC] = calc;
+        buttons[RESET] = reset;
         
-        BorderPane endButtons = new BorderPane(null, null, calc, null, options);
+        BorderPane endButtons = new BorderPane(reset, null, calc, null, options);
 
         vbox.getChildren().add(endButtons);
 
@@ -617,7 +623,7 @@ public class App extends Application
         vbox.getChildren().add(addNodeButton);
     }
 
-    void sidebarMakeBeam(){
+    void sidebarMakeBeam(){  
         Text addBeam = new Text("New Beam");
         addBeam.setId("largeTextSideBar");
         vbox.getChildren().add(addBeam);
@@ -709,6 +715,16 @@ public class App extends Application
         buttons[ADDFORCE].setOnAction(InputHandling.addForceEventHandler);
         buttons[CALC].setOnAction(InputHandling.calculate);
         buttons[OPTIONS].setOnAction(InputHandling.helpAlert);
+        buttons[RESET].setOnAction(new EventHandler<ActionEvent>(){
+            public void handle(ActionEvent ae){
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "This will reset and remove ALL joints, beams and forces. Are you sure you want to continue?", ButtonType.OK, ButtonType.CANCEL);
+                alert.setHeaderText(null);
+                Optional<ButtonType> result = alert.showAndWait();
+                if (result.get() == ButtonType.OK){
+                    InputHandling.reset();
+                }
+            }
+        });
         textfields[NODENAME].setOnAction(new EventHandler<ActionEvent>(){
             public void handle(ActionEvent ae){
                 textfields[NODEX].requestFocus();
@@ -901,9 +917,9 @@ public class App extends Application
 
         //Intro
         {
-            for (int i = 0; i < 17; ++i){
+            for (int i = 0; i < 18; ++i){
                 text = new Text(in.nextLine());
-                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+                text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 14));
                 helpVBox.getChildren().add(text);
             }
         }
@@ -1141,6 +1157,25 @@ public class App extends Application
             text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
             helpVBox.getChildren().add(text);
             
+            //Reset
+            text = new Text(in.nextLine());
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));
+            helpVBox.getChildren().add(text);
+            
+            separator = new Separator(Orientation.HORIZONTAL);
+            separator.setMaxWidth(text.getLayoutBounds().getWidth());
+            helpVBox.getChildren().add(separator);
+    
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
+            text = new Text(in.nextLine());
+            text.setWrappingWidth(pWidth/2);
+            text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 12));
+            helpVBox.getChildren().add(text);
+
             //Error Message
             text = new Text(in.nextLine());
             text.setFont(Font.font("DejaVu Sans Mono", FontWeight.NORMAL, 16));

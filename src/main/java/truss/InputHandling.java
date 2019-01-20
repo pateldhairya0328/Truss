@@ -42,7 +42,6 @@ public class InputHandling{
             for (Beam b: beams){
                 if (b.contains(me.getSceneX(), me.getSceneY())){
                     ContextMenu cm = null;
-                    System.out.println("hello");
                     if (me.getButton() == MouseButton.PRIMARY){
                         MenuItem name = new MenuItem("Name: "+b.getName());
                         MenuItem force = new MenuItem("Force: "+b.getForceText());
@@ -52,6 +51,7 @@ public class InputHandling{
                         MenuItem delBeam = new MenuItem("Delete Beam");
                         delBeam.setOnAction(new EventHandler<ActionEvent>(){
                             public void handle(ActionEvent ae){
+                                resetCalculatedValues();
                                 group.getChildren().remove(b);
                                 b.getJointA().getBeams().remove(b);
                                 b.getJointB().getBeams().remove(b);
@@ -121,6 +121,7 @@ public class InputHandling{
                 final Joint toDel = clicked;
                 delete.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
+                        resetCalculatedValues();
                         for (Arrow a: toDel.getArrows()){
                             group.getChildren().remove(a);
                         }
@@ -139,6 +140,7 @@ public class InputHandling{
                 MenuItem delForces = new MenuItem("Remove Forces");
                 delForces.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
+                        resetCalculatedValues();
                         group.getChildren().removeAll(toDel.getArrows());
                         toDel.getArrows().removeIf(p->true);
                         toDel.getForceDirs().removeIf(p->true);
@@ -152,6 +154,7 @@ public class InputHandling{
                 final Joint toChange = clicked;
                 changeAng.setOnAction(new EventHandler<ActionEvent>(){
                     public void handle(ActionEvent ae){
+                        resetCalculatedValues();
                         try{
                             TextInputDialog tid = new TextInputDialog();
                             tid.setTitle("Orientation of support");
@@ -348,6 +351,7 @@ public class InputHandling{
                     return;
                 }
                 else{
+                    resetCalculatedValues();
                     int type = 3;
                     if (rdButtons[ROLLER].isSelected()){
                         type = ROLLER;
@@ -410,6 +414,7 @@ public class InputHandling{
                         return;
                     }
                 }
+                resetCalculatedValues();
                 new Beam(jointA, jointB);
             }catch(NullPointerException npe){
                 showError("You entered an invalid name for one or both of the nodes.");
@@ -423,12 +428,14 @@ public class InputHandling{
     static EventHandler<ActionEvent> addForceEventHandler = new EventHandler<ActionEvent>() {
         public void handle(ActionEvent ae){
             try{
+                resetCalculatedValues();
                 double text = 0;
+                double angle = Double.parseDouble(textfields[FORCEDIR].getText());
                 if ((text = Double.parseDouble(textfields[FORCEVAL].getText())) <= 0){
-                    showError("Force value must be positive.");
+                    text = -text;
+                    angle = -angle;
                 }
                 Joint j = nodeMap.get(textfields[FORCENODE].getText());
-                double angle = Double.parseDouble(textfields[FORCEDIR].getText());
                 j.getForceVals().add(text);
                 j.getForceDirs().add(angle);
                 Arrow a = new Arrow(j, -angle, text);
@@ -476,4 +483,35 @@ public class InputHandling{
             helpAlert.showAndWait();
         }
     };
+
+    static void resetCalculatedValues(){
+        for (Beam b: beams){
+            b.setForce("");
+        }
+        for (Arrow a: reactionForces){
+            group.getChildren().remove(a);
+        }
+        reactionForces.clear();
+    }
+
+    static void reset(){
+        nodeMap.clear();
+        for (Beam b: beams){
+            group.getChildren().remove(b.getForce());
+            group.getChildren().remove(b);
+        }
+        beams.clear();
+        for (Arrow a: reactionForces){
+            group.getChildren().remove(a);
+        }
+        reactionForces.clear();
+        for (Joint j: nodes){
+            for (Arrow a: j.getArrows()){
+                group.getChildren().remove(a);
+            }
+            group.getChildren().remove(j.getDisplayName());
+            group.getChildren().remove(j);
+        }
+        nodes.clear();
+    }
 }

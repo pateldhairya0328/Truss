@@ -28,3 +28,13 @@
     -fx-base: #94f48d;
     -fx-background: #1cb512;
 }
+
+#resetButton{
+    -fx-base: #f38787;
+    -fx-background: #f38787;
+}
+
+#helpButton{
+    -fx-base: #f5eeb4;
+    -fx-background: #f7eea4;
+}

@@ -14,6 +14,7 @@ This help section will show how to use this program and will cover the following
     • Other
         ◦ Sidebar
         ◦ Grid Display
+        ◦ Reset
         ◦ Error Messages
 
 Joints
@@ -41,7 +42,7 @@ To add a beam between two joints, you can enter the name of the two joints (case
 /helpAssets/addBeam.png
 
 Remove Beam
-remove_beam_sample_text
+To remove a beam, right click on a beam and click "Delete".
 /helpAssets/delBeam.png
 
 External Forces
@@ -65,6 +66,9 @@ The sidebar can be found on the left side of the screen and has options to add j
 Grid Display
 The display is initially shown as a grid with major and minor gridlines as well as axis labels in meters. Scrolling allows you to zoom in or out in order to better fit your needs. Clicking and moving your mouse will also let you drag the grid around. Right clicking any empty place on the screen will bring up a pop-up menu, where the first option is "Change grid". The two options in "Change grid" (shown below) allow you to show or hide the entire grid or just the minor gridlines.
 /helpAssets/showHideGrid.png
+
+Reset
+You can click the red "Reset" button to remove all joints, beams and forces. When you click the "Reset" button, a confirmation dialog will appear asking if you are sure you want to reset. Click OK in the dialog to reset.
 
 Error Messages
 If you do an incorrect action, such as inputing non-real numbers for force values, or leaving a necessary field empty, and error message will show up. Following the message in the error message will allow you to use the program correctly. An example of an error message (where the joint name field was left empty):
